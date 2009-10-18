@@ -1,36 +1,34 @@
-#!/usr/bin/env python
+// http://techgame.net/projects/Runeblade/browser/trunk/RBRapier/RBRapier/Tools/Geometry/Analysis/TriangleMesh.py?rev=760
 
-# http://techgame.net/projects/Runeblade/browser/trunk/RBRapier/RBRapier/Tools/Geometry/Analysis/TriangleMesh.py?rev=760
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ License
+//~
+//- The RuneBlade Foundation library is intended to ease some
+//- aspects of writing intricate Jabber, XML, and User Interface (wxPython, etc.)
+//- applications, while providing the flexibility to modularly change the
+//- architecture. Enjoy.
+//~
+//~ Copyright (C) 2002  TechGame Networks, LLC.
+//~
+//~ This library is free software; you can redistribute it and/or
+//~ modify it under the terms of the BSD style License as found in the
+//~ LICENSE file included with this distribution.
+//~
+//~ TechGame Networks, LLC can be reached at:
+//~ 3578 E. Hartsel Drive #211
+//~ Colorado Springs, Colorado, USA, 80920
+//~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##~ License
-##~
-##- The RuneBlade Foundation library is intended to ease some
-##- aspects of writing intricate Jabber, XML, and User Interface (wxPython, etc.)
-##- applications, while providing the flexibility to modularly change the
-##- architecture. Enjoy.
-##~
-##~ Copyright (C) 2002  TechGame Networks, LLC.
-##~
-##~ This library is free software; you can redistribute it and/or
-##~ modify it under the terms of the BSD style License as found in the
-##~ LICENSE file included with this distribution.
-##~
-##~ TechGame Networks, LLC can be reached at:
-##~ 3578 E. Hartsel Drive #211
-##~ Colorado Springs, Colorado, USA, 80920
-##~
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~ Imports
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ Imports
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 import weakref
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~ Definitions
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ Definitions
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class FlyweightGroupObject(object):
     def ClassFlyweightGroup(klass, name, **kw):
@@ -59,7 +57,7 @@ class Edge(FlyweightGroupObject):
         if result == face: result = None
         return result
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class Face(FlyweightGroupObject):
     def __init__(self, v0,v1,v2):
@@ -78,10 +76,10 @@ class Face(FlyweightGroupObject):
         return "<%s v=%s>" % (self.__class__.__name__, self.v)
 
     _VertexWindingTable = {1:0, -1:1, -2:0, 2:1}
-    # 1 corresponds to e01 or e12
-    # -1 corresponds to e10 = -e01; or e12 = -e21
-    # 2 corresponds to e20
-    # -2 corresponds to e02 = -e20
+    // 1 corresponds to e01 or e12
+    // -1 corresponds to e10 = -e01; or e12 = -e21
+    // 2 corresponds to e20
+    // -2 corresponds to e02 = -e20
 
     def GetVertexWinding(self, pv0, pv1):
         v = list(self.v)
@@ -103,7 +101,7 @@ class Face(FlyweightGroupObject):
         else:
             raise KeyError, "Expected one vertex, but found none! (%r, %r, %r)" % (self.v, (pv0, pv1), result)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class EdgedFace(Face):
     def __init__(self, v0,v1,v2):
@@ -126,16 +124,16 @@ class EdgedFace(Face):
     def GetCommonEdges(self, otherface):
         return [edge for edge in otherface.edges if edge in self.edges]
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class FaceMesh(FlyweightGroupObject):
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #~ Constants / Variables / Etc.
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~ Constants / Variables / Etc.
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #~ Public Methods
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~ Public Methods
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def __init__(self, FaceClass=Face):
         FaceClassName = '%s&%s'%(self.__class__.__name__, FaceClass.__name__)
@@ -153,7 +151,7 @@ class FaceMesh(FlyweightGroupObject):
             self.Faces.append(face)
             return face
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class FaceEdgeMesh(FlyweightGroupObject):
     """
@@ -173,13 +171,13 @@ class FaceEdgeMesh(FlyweightGroupObject):
     <FaceEdgeMesh&Edge ev=(1, 2)>
     """
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #~ Constants / Variables / Etc.
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~ Constants / Variables / Etc.
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #~ Public Methods
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~ Public Methods
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def __init__(self, FaceClass=EdgedFace, EdgeClass=Edge):
         FaceClassName = '%s&%s'%(self.__class__.__name__, FaceClass.__name__)
@@ -219,9 +217,9 @@ class FaceEdgeMesh(FlyweightGroupObject):
             self.Faces.append(face)
             return face
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~ Optimization
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ Optimization
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 try: import psyco
 except ImportError: pass
@@ -232,9 +230,9 @@ else:
     psyco.bind(FaceMesh)
     psyco.bind(FaceEdgeMesh)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~ Testing
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ Testing
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if __name__=='__main__':
     import doctest
