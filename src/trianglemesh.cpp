@@ -33,12 +33,13 @@
 //~ Definitions
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Edge::Index Edge::make_index(int ev0, int ev1) {
-	std::pair<int, int> edge_index;
+Edge::Index::Index(int ev0, int ev1) {
 	if (ev0 < ev1) {
-		return std::make_pair(ev0, ev1);
+		first = ev0;
+		second = ev1;
 	} else {
-		return std::make_pair(ev1, ev0);
+		first = ev1;
+		second = ev0;
 	}
 };
 
@@ -131,7 +132,7 @@ std::vector<boost::shared_ptr<const Edge> > Face::get_common_edges(const Face & 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 boost::shared_ptr<Edge> Mesh::add_edge(int ev0, int ev1) {
-	Edge::Index edge_index = Edge::make_index(ev0, ev1);
+	Edge::Index edge_index(ev0, ev1);
 	EdgeMap::const_iterator edge_iter = edges.find(edge_index);
 	if (edge_iter == edges.end()) {
 		boost::shared_ptr<Edge> edge(new Edge(ev0, ev1));

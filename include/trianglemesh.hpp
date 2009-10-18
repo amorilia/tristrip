@@ -44,9 +44,12 @@ private:
 
 public:
 	//! Edge index: ordered pair of edge vertices.
-	typedef std::pair<int, int> Index;
-	//! Make edge index.
-	static Index make_index(int ev0, int ev1);
+	class Index
+				: public std::pair<int, int> {
+	public:
+		//! Make edge index.
+		Index(int ev0, int ev1);
+	};
 
 	//! Note: faces are set in Mesh::add_face.
 	std::vector<boost::weak_ptr<const Face> > faces;
