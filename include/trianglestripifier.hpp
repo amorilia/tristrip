@@ -137,32 +137,38 @@ class TriangleStrip {
 		};
 		experiment_id = _experiment_id;
 	};
-};
 
-int TriangleStrip::NUM_STRIPS = 0;
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//~ Element Membership Tests
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	//! Does the given face belong to the strip?
+	bool has_face(MFacePtr face) {
+		// Note: original method was called FaceInStrip and
+		// could test for multiple faces - however we only
+		// need to check a single face at a time
+		if (experiment_id != -1) {
+			return (face->test_strip_id == strip_id);
+		} else {
+			return (face->strip_id == strip_id);
+		}
+	}
+
+	//! Is the face marked in this strip?
+	bool is_face_marked(MFacePtr face) {
+		// does it belong to a final strip?
+		bool result = (face->strip_id != -1);
+		// it does not belong to a final strip... does it
+		// belong to the current experiment?
+		if ((!result) && (experiment_id != -1)) {
+			result = (face->experiment_id == experiment_id);
+		};
+		return result;
+	}
+};
 
 /*
 
-    def __repr__(self):
-        return "<FaceStrip |Faces|=%s>" % len(self.Faces)
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    //~ Element Membership Tests
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def FaceInStrip(self, *faces):
-        if self.ExperimentId is not None: key = 'TestStripId'
-        else: key = 'StripId'
-        for face in faces:
-            if getattr(face, key, None) is self.StripId:
-                return 1
-        else: return 0
-
-    def IsFaceMarked(self, face):
-        result = getattr(face, 'StripId', None) is not None
-        if not result and self.ExperimentId is not None:
-            result = (getattr(face, 'ExperimentId', None) == self.ExperimentId)
-        return result
     def MarkFace(self, face):
         if self.ExperimentId is not None:
             face.ExperimentId = self.ExperimentId
@@ -294,10 +300,15 @@ int TriangleStrip::NUM_STRIPS = 0;
                         return result
 
         raise ValueError('failed to build strip from triangles')
+*/
+
+int TriangleStrip::NUM_STRIPS = 0;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ ExperimentGLSelector
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+/*
 
 class ExperimentGLSelector(object):
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

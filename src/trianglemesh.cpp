@@ -193,7 +193,9 @@ int Face::get_other_vertex(int pv0, int pv1) const {
 	throw std::runtime_error("Invalid vertex index.");
 }
 
-MFace::MFace(const Face & face) : Face(face), edges() {
+MFace::MFace(const Face & face)
+		: Face(face), edges(),
+		strip_id(-1), test_strip_id(-1), experiment_id(-1) {
 	// nothing to do
 };
 

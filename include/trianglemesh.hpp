@@ -138,6 +138,17 @@ public:
 	typedef std::vector<MEdgePtr> Edges;
 	Edges edges; //! Note: edges are set in Mesh::add_face.
 
+	//! The id of the strip the face is assigned to in final
+	//! stripification.
+	int strip_id;
+
+	//! The id of the strip the face is assigned to during a
+	//! stripification experiment.
+	int test_strip_id;
+
+	//! The id of the stripification experiment.
+	int experiment_id;
+
 	//! Note: don't call directly! Use Mesh::add_face.
 	MFace(const Face & face);
 
