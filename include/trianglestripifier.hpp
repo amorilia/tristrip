@@ -103,6 +103,7 @@ public:
 	//Origional can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
 
 	std::list<MFacePtr> faces; // list because we need push_front
+	std::list<int> strip; // identical to faces, but written as a strip
 	MFacePtr start_face;
 	int start_face_index;
 	MEdgePtr start_edge;
@@ -203,12 +204,11 @@ public:
 	        else: return 1
 	*/
 
-	//! Building face traversal list starting from the given face and
-	//! edge indices. Returns number of faces added.
-	int traverse_faces(int v0, int v1, MFacePtr next_face,
-	                   std::list<MFacePtr> & faces, bool forward) {
+	//! Building face traversal list starting from the start_face and
+	//! the given edge indices. Returns number of faces added.
+	int traverse_faces(int v0, int v1, bool forward) {
 		int count = 0;
-		next_face = find_other_face(v0, v1, next_face);
+		next_face = find_other_face(v0, v1, start_face);
 		while ((next_face) && (!is_face_marked(next_face))) {
 			// XXX the nvidia stripifier says the following:
 			// XXX
@@ -228,8 +228,10 @@ public:
 			v1 = v2;
 			if (forward) {
 				faces.push_back(next_face);
+				strip.push_back(v1);
 			} else {
 				faces.push_front(next_face);
+				strip.push_front(v1);
 			};
 			mark_face(next_face);
 			next_face = find_other_face(v0, v1, next_face);
@@ -244,83 +246,32 @@ public:
 	//! the joined list.
 	void build() {
 		faces.clear();
+		strip.clear();
+		// find start indices
 		int v0 = start_ev0;
 		int v1 = start_ev1;
 		int v2 = start_face->get_other_vertex(v0, v1);
+		// mark start face and add it to faces and strip
 		mark_face(start_face);
 		faces.push_back(start_face);
+		strip.push_back(v0);
+		strip.push_back(v1);
+		strip.push_back(v2);
 		// while traversing backwards, start face gets shifted forward
-		traverse_faces(v1, v2, start_face, faces, true);
-		start_face_index = traverse_faces(v1, v0, start_face, faces, false);
+		// so we keep track of that (to get winding right in the end)
+		traverse_faces(v1, v2, true);
+		start_face_index = traverse_faces(v1, v0, false);
 	};
 
 	void commit() {
 		experiment_id = -1;
 	};
+
+	// Note: TriangleListIndices is too trivial to be of interest, and
+	// TriangleStripIndices not needed because we store the strip during
+	// face traversal.
+
 };
-
-/*
-
-    def TriangleListIndices(self):
-        result = []
-        for face in self.Faces:
-            result.extend(face.v)
-        return result
-
-    def TriangleStripIndices(self):
-        FaceList = self.Faces
-        FaceCount = len(FaceList)
-        if FaceCount <= 0:
-            // No faces is the easiest of all... return an empty list
-            return []
-        elif FaceCount == 1:
-            // One face is really easy ;) just return the verticies in order
-            return list(FaceList[0].v)
-        elif FaceCount == 2:
-            // The case of two faces is pretty simple too...
-            face0,face1 = FaceList[:2]
-            // Get the common edge
-            edge01 = face0.GetCommonEdges(face1)[0]
-            // Find the vertex on the first face not on the common edge
-            result = [face0.OtherVertex(*edge01.ev)]
-            // add the next two verticies on the edge in winding order
-            result.append(face0.NextVertex(result[-1]))
-            result.append(face0.NextVertex(result[-1]))
-            // Find the vertex on the second face not on the common edge
-            result.append(face1.OtherVertex(*edge01.ev))
-            return result
-
-        face0,face1,face2 = FaceList[:3]
-        // Get the edge between face0 and face1
-        for edge01 in face0.GetCommonEdges(face1):
-            // Get the edge between face1 and face2
-            for edge12 in face1.GetCommonEdges(face2):
-                // Figure out which vertex we need to end on
-                for  v2 in edge01.GetCommonVertices(edge12):
-                    // Find the vertex on the first face not on the common edge
-                    v0 = face0.OtherVertex(*edge01.ev)
-                    // Find the middle vertex from the two endpoints
-                    v1 = face0.OtherVertex(v0, v2)
-
-                    // Figure out if the start triangle is backwards
-                    upsidedown = face0.NextVertex(v0) != v1
-                    if upsidedown:
-                        // We need to add a degenerate triangle to flip the strip over
-                        result = [v0,v0,v1,v2]
-                    else: result = [v0,v1,v2]
-
-                    for face in FaceList[1:]:
-                        // Build the strip by repeatedly finding the missing index
-                        try:
-                            result.append(face.OtherVertex(*result[-2:]))
-                        except KeyError:
-                            break // constructing strip failed; try other starting combination
-                    else:
-                        // strip built, so return it
-                        return result
-
-        raise ValueError('failed to build strip from triangles')
-*/
 
 int TriangleStrip::NUM_STRIPS = 0;
 
