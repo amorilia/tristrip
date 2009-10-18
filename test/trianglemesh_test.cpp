@@ -124,6 +124,8 @@ BOOST_AUTO_TEST_CASE(add_face_test) {
 	BOOST_CHECK_NO_THROW(m.add_face(0, 1, 2));
 	BOOST_CHECK_NO_THROW(m.add_face(2, 1, 3));
 	BOOST_CHECK_NO_THROW(m.add_face(2, 3, 4));
+	BOOST_CHECK_EQUAL(m.faces.size(), 3);
+	BOOST_CHECK_EQUAL(m.edges.size(), 7);
 	// add duplicate face
 	BOOST_CHECK_NO_THROW(m.add_face(2, 3, 4));
 	boost::shared_ptr<MFace> f0 = m.add_face(10, 11, 12);
@@ -131,6 +133,9 @@ BOOST_AUTO_TEST_CASE(add_face_test) {
 	boost::shared_ptr<MFace> f2 = m.add_face(11, 12, 10);
 	BOOST_CHECK_EQUAL(f0, f1);
 	BOOST_CHECK_EQUAL(f0, f2);
+	// one extra face, three extra edges
+	BOOST_CHECK_EQUAL(m.faces.size(), 4);
+	BOOST_CHECK_EQUAL(m.edges.size(), 10);
 }
 
 BOOST_AUTO_TEST_CASE(face_get_edge_test) {
