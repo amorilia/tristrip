@@ -93,34 +93,55 @@ def _xwrap(idx, maxlen):
     while idx < maxlen:
         yield idx
         idx += 1
+*/
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class TriangleStrip(object):
-    """
-    Heavily adapted from NvTriStrip.
-    Origional can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
-    """
+class TriangleStrip {
+	//Heavily adapted from NvTriStrip.
+	//Origional can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
 
-    Faces = tuple()
-    ExperimentId = None
+	std::vector<MFacePtr> faces;
+	MFacePtr start_face;
+	MEdgePtr start_edge;
+	int start_ev0; //! start_edge->ev0 or ev1 (determines direction of edge).
+	int start_ev1; //! start_edge->ev0 or ev1 (determines direction of edge).
+	int experiment_id;
+	int strip_id;
 
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    //~ Public Methods
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Initialized to zero (just after class definition).
+	static int NUM_STRIPS; //! Used to determine the next strip id.
 
-    def __init__(self, StartFace, StartEdge, StartForward=1, StripId=None, ExperimentId=None):
-        // TODO: Can we combine StripID with pythonic ideas?
-        self.StartFace = StartFace
-        self.StartEdge = StartEdge
-        if StartForward:
-            v0,v1 = self.StartEdge.ev
-        else: v1,v0 = self.StartEdge.ev
-        self.StartEdgeOrder = v0, v1
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//~ Public Methods
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        self.StripId = StripId or id(self)
-        if ExperimentId is not None:
-            self.ExperimentId = ExperimentId
+	TriangleStrip(MFacePtr _start_face, MEdgePtr _start_edge,
+	              bool _start_forward=true,
+	              int _strip_id=-1, int _experiment_id=-1) {
+		start_face = _start_face;
+		start_edge = _start_edge;
+		// XXX maybe forward means following the winding of _start_face
+		// XXX could need fix!!
+		if (_start_forward) {
+			start_ev0 = start_edge->ev0;
+			start_ev1 = start_edge->ev1;
+		} else {
+			start_ev0 = start_edge->ev1;
+			start_ev1 = start_edge->ev0;
+		};
+		if (_strip_id != -1) {
+			strip_id = _strip_id;
+		} else {
+			strip_id = NUM_STRIPS++;
+		};
+		experiment_id = _experiment_id;
+	};
+};
+
+int TriangleStrip::NUM_STRIPS = 0;
+
+/*
 
     def __repr__(self):
         return "<FaceStrip |Faces|=%s>" % len(self.Faces)
