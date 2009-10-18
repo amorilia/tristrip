@@ -35,44 +35,43 @@
 //~ Definitions
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class Face; // forward declaration
-
-//! A non-degenerate edge.
+//! A standalone non-degenerate edge, represented as an ordered pair.
 class Edge {
-private:
+public:
 	int ev0, ev1;
 
-public:
-	//! Edge index: ordered pair of edge vertices.
-	class Index
-				: public std::pair<int, int> {
-	public:
-		//! Make edge index.
-		Index(int ev0, int ev1);
-	};
-
-	//! Note: faces are set in Mesh::add_face.
-	std::vector<boost::weak_ptr<const Face> > faces;
-
-	//! Note: don't call directly! Use Mesh::add_face.
 	Edge(int _ev0, int _ev1);
+
+	bool operator<(const Edge & otheredge) const;
+	bool operator==(const Edge & otheredge) const;
 
 	std::vector<int> get_common_vertices(const Edge & otheredge) const;
 };
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class MFace; // forward declaration
 
-//! A non-degenerate face.
-class Face {
-private:
-	int v0, v1, v2;
-
+//! A non-degenerate edge with links to other parts of a mesh.
+class MEdge : public Edge {
 public:
-	//! Note: edges are set in Mesh::add_face.
-	std::vector<boost::weak_ptr<const Edge> > edges;
+	//! Note: faces are set in Mesh::add_face.
+	std::vector<boost::weak_ptr<const MFace> > faces;
 
 	//! Note: don't call directly! Use Mesh::add_face.
+	MEdge(const Edge & edge);
+};
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+//! A standalone non-degenerate face.
+class Face {
+public:
+	//! Vertex indices, with v0 always being the lowest index.
+	int v0, v1, v2;
+
 	Face(int _v0, int _v1, int _v2);
+
+	bool operator<(const Face & otherface) const;
+	bool operator==(const Face & otherface) const;
 
 	//! Returns +1 if vertex order goes with face winding, -1 if
 	//! it it goes against face winding.
@@ -83,13 +82,23 @@ public:
 
 	//! Get other vertex.
 	int get_other_vertex(int pv0, int pv1) const;
+};
+
+//! A non-degenerate face with links to other parts of a mesh.
+class MFace : public Face {
+public:
+	//! Note: edges are set in Mesh::add_face.
+	std::vector<boost::weak_ptr<const MEdge> > edges;
+
+	//! Note: don't call directly! Use Mesh::add_face.
+	MFace(const Face & face);
 
 	//! Get pointer to edge object.
-	boost::shared_ptr<const Edge>
+	boost::shared_ptr<const MEdge>
 	get_edge(int ev0, int ev1) const;
 
-	std::vector<boost::shared_ptr<const Edge> >
-	get_common_edges(const Face & otherface) const;
+	std::vector<boost::shared_ptr<const MEdge> >
+	get_common_edges(const MFace & otherface) const;
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -97,17 +106,23 @@ public:
 //! A mesh built from faces.
 class Mesh {
 private:
-	//! Create new edge for mesh, or return existing edge.
-	boost::shared_ptr<Edge> add_edge(int ev0, int ev1);
+	//! Create new edge for mesh, or return existing edge. List of
+	//! faces of the new edge will be empty and needs to be
+	//! manually updated. For internal use only.
+	boost::shared_ptr<MEdge> add_edge(int ev0, int ev1);
 
 public:
-	std::vector<boost::shared_ptr<Face > > faces; //! List of faces.
-	typedef std::map<Edge::Index, boost::shared_ptr<Edge> > EdgeMap;
-	EdgeMap edges; //! Map edge indices to edge objects.
+	// We use maps to avoid duplicate entries and quickly detect
+	// adjacent faces and adjacent edges.
+
+	typedef std::map<Face, boost::shared_ptr<MFace> > FaceMap;
+	FaceMap faces; //! Map for mesh faces.
+	typedef std::map<Edge, boost::shared_ptr<MEdge> > EdgeMap;
+	EdgeMap edges; //! Map for mesh edges.
 
 	//! Initialize empty mesh.
 	Mesh();
 
-	//! Create new edge for mesh, or return existing edge.
-	boost::shared_ptr<Face> add_face(int v0, int v1, int v2);
+	//! Create new face for mesh, or return existing face.
+	boost::shared_ptr<MFace> add_face(int v0, int v1, int v2);
 };
