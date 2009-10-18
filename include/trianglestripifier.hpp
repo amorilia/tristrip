@@ -50,7 +50,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-import pyffi.utils.trianglemesh as Mesh
+#include "trianglemesh.hpp"
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ Definitions
@@ -86,18 +86,6 @@ def _xwrap(idx, maxlen):
     while idx < maxlen:
         yield idx
         idx += 1
-
-def _MakeSimpleMesh(mesh, data):
-    i0, i1 = data[:2]
-    flip = True
-    for i2 in data[2:]:
-        if flip: mesh.AddFace(i0, i1, i2)
-        else:    mesh.AddFace(i1, i0, i2)
-        i0, i1 = i1, i2
-        flip = not flip
-
-def _ConjoinMeshData(*data):
-    return [x for y in zip(*data) for x in y]
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -322,30 +310,11 @@ class ExperimentGLSelector(object):
 //~ TriangleStripifier
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+/*
+Heavily adapted from NvTriStrip.
+Origional can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
+*/
 class TriangleStripifier(object):
-    """
-    Heavily adapted from NvTriStrip.
-    Origional can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
-
-    >>> mesh = Mesh.FaceEdgeMesh(); mesh.CleanFaces = 1
-    >>> rows = [range(0,4), range(4,8), range(8,12), range(12,16)]
-    >>> r0 = rows[0]
-    >>> for r1 in rows[1:]:
-    ...    _MakeSimpleMesh(mesh, _ConjoinMeshData(r0, r1))
-    ...    r0=r1
-    >>> mesh
-    <FaceEdgeMesh |edges|=33 |faces|=18>
-    >>> stripifier = TriangleStripifier()
-    >>> stripifier.GLSelector.Samples = 10
-    >>> stripifier.GLSelector.MinStripLength = 0
-    >>> r = stripifier.Stripify(mesh)
-    >>> stripifier.TriangleList, stripifier.TriangleStrips
-    ([], [[14, 14, 13, 10, 9, 6, 5, 2, 1], [15, 15, 14, 11, 10, 7, 6, 3, 2], [13, 13, 12, 9, 8, 5, 4, 1, 0]])
-    >>> stripifier.GLSelector.MinStripLength = 100
-    >>> r = stripifier.Stripify(mesh)
-    >>> stripifier.TriangleList, stripifier.TriangleStrips
-    ([10, 13, 14, 9, 13, 10, 6, 9, 10, 5, 9, 6, 2, 5, 6, 1, 5, 2, 11, 14, 15, 10, 14, 11, 7, 10, 11, 6, 10, 7, 3, 6, 7, 2, 6, 3, 9, 12, 13, 8, 12, 9, 5, 8, 9, 4, 8, 5, 1, 4, 5, 0, 4, 1], [])
-    """
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //~ Constants / Variables / Etc.
@@ -526,48 +495,3 @@ class TriangleStripifier(object):
                 try: del face.StripId
                 except AttributeError: pass
                 CleanFacesTask += 1
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//~ Optimization
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-try: import psyco
-except ImportError: pass
-else:
-    psyco.bind(TriangleStrip)
-    psyco.bind(ExperimentGLSelector)
-    psyco.bind(TriangleStripifier)
-    psyco.bind(_FindOtherFace)
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//~ Testing
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-if __name__=='__main__':
-    print("Testing...")
-    import time
-    import doctest
-    import TriangleStripifier as _testmod
-    doctest.testmod(_testmod)
-
-    rowcount,colcount = 26,26
-    rows = []
-    for ri in xrange(rowcount):
-        rows.append(range(ri*colcount, (ri+1)*colcount))
-
-    startmesh = time.clock()
-    mesh = Mesh.FaceEdgeMesh()
-    r0 = rows[0]
-    for r1 in rows[1:]:
-        _MakeSimpleMesh(mesh, _ConjoinMeshData(r0, r1)); r0=r1
-    print(mesh)
-    donemesh = time.clock()
-    print("Meshed:", donemesh, donemesh - startmesh)
-
-    startstrip = time.clock()
-    stripifier = TriangleStripifier()
-    stripifier(mesh)
-    donestrip = time.clock()
-    print("Stripped", donestrip, donestrip-startstrip)
-
-    print("Test complete.")
