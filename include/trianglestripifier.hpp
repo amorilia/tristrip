@@ -1,4 +1,6 @@
-"""A general purpose stripifier, based on NvTriStrip (http://developer.nvidia.com/)
+/*
+
+A general purpose stripifier, based on NvTriStrip (http://developer.nvidia.com/)
 
 Credit for porting NvTriStrip to Python goes to the RuneBlade Foundation
 library:
@@ -8,55 +10,56 @@ The algorithm of this stripifier is an improved version of the RuneBlade
 Foundation / NVidia stripifier; it makes no assumptions about the
 underlying geometry whatsoever and is intended to produce valid
 output in all circumstances.
-"""
 
-# ***** BEGIN LICENSE BLOCK *****
-#
-# Copyright (c) 2007-2009, Python File Format Interface
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#    * Redistributions of source code must retain the above copyright
-#      notice, this list of conditions and the following disclaimer.
-#
-#    * Redistributions in binary form must reproduce the above
-#      copyright notice, this list of conditions and the following
-#      disclaimer in the documentation and/or other materials provided
-#      with the distribution.
-#
-#    * Neither the name of the Python File Format Interface
-#      project nor the names of its contributors may be used to endorse
-#      or promote products derived from this software without specific
-#      prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-#
-# ***** END LICENSE BLOCK *****
+*/
+
+/*
+
+Copyright (c) 2007-2009, Python File Format Interface
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+
+   * Redistributions in binary form must reproduce the above
+     copyright notice, this list of conditions and the following
+     disclaimer in the documentation and/or other materials provided
+     with the distribution.
+
+   * Neither the name of the Python File Format Interface
+     project nor the names of its contributors may be used to endorse
+     or promote products derived from this software without specific
+     prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+*/
 
 import pyffi.utils.trianglemesh as Mesh
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~ Definitions
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ Definitions
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def _FindOtherFace(ev0, ev1, face):
     try:
         edge = face.GetEdge(ev0,ev1)
-        # find a face with different edge windings
+        // find a face with different edge windings
         result = edge.NextFace(face)
         if result:
             windings = face.GetVertexWinding(ev0,ev1), result.GetVertexWinding(ev0,ev1)
@@ -96,7 +99,7 @@ def _MakeSimpleMesh(mesh, data):
 def _ConjoinMeshData(*data):
     return [x for y in zip(*data) for x in y]
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class TriangleStrip(object):
     """
@@ -107,12 +110,12 @@ class TriangleStrip(object):
     Faces = tuple()
     ExperimentId = None
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #~ Public Methods
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~ Public Methods
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def __init__(self, StartFace, StartEdge, StartForward=1, StripId=None, ExperimentId=None):
-        # TODO: Can we combine StripID with pythonic ideas?
+        // TODO: Can we combine StripID with pythonic ideas?
         self.StartFace = StartFace
         self.StartEdge = StartEdge
         if StartForward:
@@ -127,9 +130,9 @@ class TriangleStrip(object):
     def __repr__(self):
         return "<FaceStrip |Faces|=%s>" % len(self.Faces)
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #~ Element Membership Tests
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~ Element Membership Tests
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def FaceInStrip(self, *faces):
         if self.ExperimentId is not None: key = 'TestStripId'
@@ -155,7 +158,7 @@ class TriangleStrip(object):
             try: del face.TestStripId
             except AttributeError: pass
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def Build(self):
         """Builds the face strip forwards, then backwards, and returns the joined list"""
@@ -192,7 +195,7 @@ class TriangleStrip(object):
                 Indices.append(nv1)
                 NextFace = _FindOtherFace(nv0, nv1, NextFace)
 
-        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         v0,v1 = self.StartEdgeOrder
         v2 = self.StartFace.OtherVertex(v0,v1)
@@ -202,7 +205,7 @@ class TriangleStrip(object):
         _TraverseFaces([v0,v1,v2], self.StartFace, ForwardFaces, _AlwaysTrue)
         _TraverseFaces([v2,v1,v0], self.StartFace, BackwardFaces, _UniqueFace)
 
-        # Combine the Forward and Backward results
+        // Combine the Forward and Backward results
         BackwardFaces.reverse()
         self.StartFaceIndex = len(BackwardFaces)
         BackwardFaces.extend(ForwardFaces)
@@ -226,64 +229,64 @@ class TriangleStrip(object):
         FaceList = self.Faces
         FaceCount = len(FaceList)
         if FaceCount <= 0:
-            # No faces is the easiest of all... return an empty list
+            // No faces is the easiest of all... return an empty list
             return []
         elif FaceCount == 1:
-            # One face is really easy ;) just return the verticies in order
+            // One face is really easy ;) just return the verticies in order
             return list(FaceList[0].v)
         elif FaceCount == 2:
-            # The case of two faces is pretty simple too...
+            // The case of two faces is pretty simple too...
             face0,face1 = FaceList[:2]
-            # Get the common edge
+            // Get the common edge
             edge01 = face0.GetCommonEdges(face1)[0]
-            # Find the vertex on the first face not on the common edge
+            // Find the vertex on the first face not on the common edge
             result = [face0.OtherVertex(*edge01.ev)]
-            # add the next two verticies on the edge in winding order
+            // add the next two verticies on the edge in winding order
             result.append(face0.NextVertex(result[-1]))
             result.append(face0.NextVertex(result[-1]))
-            # Find the vertex on the second face not on the common edge
+            // Find the vertex on the second face not on the common edge
             result.append(face1.OtherVertex(*edge01.ev))
             return result
 
         face0,face1,face2 = FaceList[:3]
-        # Get the edge between face0 and face1
+        // Get the edge between face0 and face1
         for edge01 in face0.GetCommonEdges(face1):
-            # Get the edge between face1 and face2
+            // Get the edge between face1 and face2
             for edge12 in face1.GetCommonEdges(face2):
-                # Figure out which vertex we need to end on
+                // Figure out which vertex we need to end on
                 for  v2 in edge01.GetCommonVertices(edge12):
-                    # Find the vertex on the first face not on the common edge
+                    // Find the vertex on the first face not on the common edge
                     v0 = face0.OtherVertex(*edge01.ev)
-                    # Find the middle vertex from the two endpoints
+                    // Find the middle vertex from the two endpoints
                     v1 = face0.OtherVertex(v0, v2)
 
-                    # Figure out if the start triangle is backwards
+                    // Figure out if the start triangle is backwards
                     upsidedown = face0.NextVertex(v0) != v1
                     if upsidedown:
-                        # We need to add a degenerate triangle to flip the strip over
+                        // We need to add a degenerate triangle to flip the strip over
                         result = [v0,v0,v1,v2]
                     else: result = [v0,v1,v2]
 
                     for face in FaceList[1:]:
-                        # Build the strip by repeatedly finding the missing index
+                        // Build the strip by repeatedly finding the missing index
                         try:
                             result.append(face.OtherVertex(*result[-2:]))
                         except KeyError:
-                            break # constructing strip failed; try other starting combination
+                            break // constructing strip failed; try other starting combination
                     else:
-                        # strip built, so return it
+                        // strip built, so return it
                         return result
 
         raise ValueError('failed to build strip from triangles')
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~ ExperimentGLSelector
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ ExperimentGLSelector
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class ExperimentGLSelector(object):
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #~ Constants / Variables / Etc.
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~ Constants / Variables / Etc.
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Samples = 3
     StripLenHeuristic = 1.0
@@ -292,9 +295,9 @@ class ExperimentGLSelector(object):
     BestScore = -1
     BestSample = None
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #~ Definitions
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~ Definitions
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def __init__(self, Samples, MinStripLength):
         self.Samples = Samples
@@ -315,9 +318,9 @@ class ExperimentGLSelector(object):
         del self.BestSample
         return result
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~ TriangleStripifier
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ TriangleStripifier
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class TriangleStripifier(object):
     """
@@ -344,22 +347,22 @@ class TriangleStripifier(object):
     ([10, 13, 14, 9, 13, 10, 6, 9, 10, 5, 9, 6, 2, 5, 6, 1, 5, 2, 11, 14, 15, 10, 14, 11, 7, 10, 11, 6, 10, 7, 3, 6, 7, 2, 6, 3, 9, 12, 13, 8, 12, 9, 5, 8, 9, 4, 8, 5, 1, 4, 5, 0, 4, 1], [])
     """
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #~ Constants / Variables / Etc.
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~ Constants / Variables / Etc.
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     GLSelector = ExperimentGLSelector(3, 3)
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #~ Public Methods
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~ Public Methods
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def Stripify(self, mesh, TaskProgress=None):
         self.TriangleList = []
         self.TriangleStrips = []
-        #self.TriangleFans = []
+        //self.TriangleFans = []
 
-        # TODO: Could find triangle fans here
+        // TODO: Could find triangle fans here
         Strips = self._FindAllStrips(mesh, TaskProgress)
         for strip in Strips:
             if len(strip.Faces) < self.GLSelector.MinStripLength:
@@ -367,13 +370,13 @@ class TriangleStripifier(object):
             else:
                 self.TriangleStrips.append(strip.TriangleStripIndices())
 
-        result = [('list', self.TriangleList), ('strip', self.TriangleStrips)]#, ('fan',self.TriangleFans) ]
+        result = [('list', self.TriangleList), ('strip', self.TriangleStrips)]//, ('fan',self.TriangleFans) ]
         return result
 
     __call__ = Stripify
 
     def StripifyIter(self, mesh, TaskProgress=None):
-        # TODO: Could find triangle fans here
+        // TODO: Could find triangle fans here
         Strips = self._FindAllStrips(mesh, TaskProgress)
         for strip in Strips:
             if len(strip.Faces) < self.GLSelector.MinStripLength:
@@ -381,9 +384,9 @@ class TriangleStripifier(object):
             else:
                yield 'strip', strip.TriangleStripIndices()
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #~ Protected Methods
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~ Protected Methods
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _FindStartFaceIndex(self, FaceList):
         """Find a good face to start stripification with."""
@@ -396,8 +399,8 @@ class TriangleStripifier(object):
             score = 0
             for edge in face.edges:
                 score += not edge.NextFace(face) and 1 or 0
-            # best possible score is 2 -- a face with only one neighbor
-            # (a score of 3 signifies a lonely face)
+            // best possible score is 2 -- a face with only one neighbor
+            // (a score of 3 signifies a lonely face)
             if bestscore < score < 3:
                 bestfaceindex, bestscore = faceindex, score
                 if bestscore >= 2:
@@ -409,10 +412,10 @@ class TriangleStripifier(object):
         lenFaceList = len(mesh.Faces)
         startstep = lenFaceList // 10
         startidx = self._FindStartFaceIndex(FaceList)
-        while True: #startidx is not None:
+        while True: //startidx is not None:
             for idx in _xwrap(startidx, lenFaceList):
                 face = FaceList[idx]
-                # If this face isn't used by another strip
+                // If this face isn't used by another strip
                 if getattr(face, 'StripId', None) is None:
                     startidx = idx + startstep
                     while startidx >= lenFaceList:
@@ -420,7 +423,7 @@ class TriangleStripifier(object):
                     yield face
                     break
             else:
-                # We've exhausted all the faces... so lets exit this loop
+                // We've exhausted all the faces... so lets exit this loop
                 break
 
     def _FindTraversal(self, strip):
@@ -428,19 +431,19 @@ class TriangleStripifier(object):
         FaceList = strip.Faces
         def _IsItHere(idx, currentedge):
             face = FaceList[idx]
-            # Get the next vertex in this strips' walk
+            // Get the next vertex in this strips' walk
             v2 = face.OtherVertex(*currentedge)
-            # Find the edge parallel to the strip, namely v0 to v2
+            // Find the edge parallel to the strip, namely v0 to v2
             paralleledge = mesh.GetEdge(currentedge[0], v2)
-            # Find the other face off the parallel edge
+            // Find the other face off the parallel edge
             otherface = paralleledge.NextFace(face)
             if otherface and not strip.FaceInStrip(otherface) and not strip.IsFaceMarked(otherface):
-                # If we can use it, then do it!
+                // If we can use it, then do it!
                 otheredge = mesh.GetEdge(currentedge[0], otherface.OtherVertex(*paralleledge.ev))
-                # TODO: See if we are getting the proper windings.  Otherwise toy with the following
+                // TODO: See if we are getting the proper windings.  Otherwise toy with the following
                 return otherface, otheredge, (otheredge.ev[0] == currentedge[0]) and 1 or 0
             else:
-                # Keep looking...
+                // Keep looking...
                 currentedge[:] = [currentedge[1], v2]
 
         startindex = strip.StartFaceIndex
@@ -455,7 +458,7 @@ class TriangleStripifier(object):
             result = _IsItHere(idx, currentedge)
             if result is not None: return result
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def _FindAllStrips(self, mesh, TaskProgress=None):
         selector = self.GLSelector
@@ -477,41 +480,41 @@ class TriangleStripifier(object):
                 VisitedResetPoints = {}
 
                 for nSample in xrange(selector.Samples):
-                    # Get a good start face for an experiment
+                    // Get a good start face for an experiment
                     ExpFace = GoodResetPoints.next()
                     if ExpFace in VisitedResetPoints:
-                        # We've seen this face already... try again
+                        // We've seen this face already... try again
                         continue
                     VisitedResetPoints[ExpFace] = 1
 
-                    # Create an exploration from ExpFace in each of the three edge directions
+                    // Create an exploration from ExpFace in each of the three edge directions
                     for ExpEdge in ExpFace.edges:
-                        # See if the edge is pointing in the direction we expect
+                        // See if the edge is pointing in the direction we expect
                         flag = ExpFace.GetVertexWinding(*ExpEdge.ev)
-                        # Create the seed strip for the experiment
+                        // Create the seed strip for the experiment
                         siSeed = TriangleStrip(ExpFace, ExpEdge, flag, stripId.next(), experimentId.next())
-                        # Add the seeded experiment list to the experiment collection
+                        // Add the seeded experiment list to the experiment collection
                         Experiments.append([siSeed])
 
                 while Experiments:
                     exp = Experiments.pop()
                     while 1:
-                        # Build the the last face of the experiment
+                        // Build the the last face of the experiment
                         exp[-1].Build()
-                        # See if there is a connecting face that we can move to
+                        // See if there is a connecting face that we can move to
                         traversal = self._FindTraversal(exp[-1])
                         if traversal:
-                            # if so, add it to the list
+                            // if so, add it to the list
                             traversal += (stripId.next(), exp[0].ExperimentId)
                             exp.append(TriangleStrip(*traversal))
                         else:
-                            # Otherwise, we're done
+                            // Otherwise, we're done
                             break
                     selector.Score(exp)
 
-                # Get the best experiment according to the selector
+                // Get the best experiment according to the selector
                 BestExperiment = selector.Result()
-                # And commit it to the resultset
+                // And commit it to the resultset
                 for each in BestExperiment:
                     yield each.Commit(StripifyTask)
                 del BestExperiment
@@ -524,9 +527,9 @@ class TriangleStripifier(object):
                 except AttributeError: pass
                 CleanFacesTask += 1
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~ Optimization
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ Optimization
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 try: import psyco
 except ImportError: pass
@@ -536,9 +539,9 @@ else:
     psyco.bind(TriangleStripifier)
     psyco.bind(_FindOtherFace)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~ Testing
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ Testing
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if __name__=='__main__':
     print("Testing...")
