@@ -165,20 +165,22 @@ class TriangleStrip {
 		};
 		return result;
 	}
+
+	//! Mark face in this strip.
+	void mark_face(MFacePtr face) {
+		if (experiment_id != -1) {
+			face->strip_id = -1;
+			face->experiment_id = experiment_id;
+			face->test_strip_id = strip_id;
+		} else {
+			face->strip_id = strip_id;
+			face->experiment_id = -1;
+			face->test_strip_id = -1;
+		}
+	}
 };
 
 /*
-
-    def MarkFace(self, face):
-        if self.ExperimentId is not None:
-            face.ExperimentId = self.ExperimentId
-            face.TestStripId = self.StripId
-        else:
-            face.StripId = self.StripId
-            try: del face.ExperimentId
-            except AttributeError: pass
-            try: del face.TestStripId
-            except AttributeError: pass
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
