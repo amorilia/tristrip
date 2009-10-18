@@ -117,13 +117,12 @@ class TriangleStrip {
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	TriangleStrip(MFacePtr _start_face, MEdgePtr _start_edge,
-	              bool _start_forward=true,
 	              int _strip_id=-1, int _experiment_id=-1) {
 		start_face = _start_face;
 		start_edge = _start_edge;
-		// XXX maybe forward means following the winding of _start_face
-		// XXX could need fix!!
-		if (_start_forward) {
+		// pick first and second vertex according to the
+		// winding of start_face
+		if (start_face->get_vertex_winding(start_edge->ev0, start_edge->ev1) == 0) {
 			start_ev0 = start_edge->ev0;
 			start_ev1 = start_edge->ev1;
 		} else {
