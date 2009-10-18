@@ -98,11 +98,13 @@ def _xwrap(idx, maxlen):
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class TriangleStrip {
+public:
 	//Heavily adapted from NvTriStrip.
 	//Origional can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
 
-	std::vector<MFacePtr> faces;
+	std::list<MFacePtr> faces; // list because we need push_front
 	MFacePtr start_face;
+	int start_face_index;
 	MEdgePtr start_edge;
 	int start_ev0; //! start_edge->ev0 or ev1 (determines direction of edge).
 	int start_ev1; //! start_edge->ev0 or ev1 (determines direction of edge).
@@ -117,9 +119,9 @@ class TriangleStrip {
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	TriangleStrip(MFacePtr _start_face, MEdgePtr _start_edge,
-	              int _strip_id=-1, int _experiment_id=-1) {
-		start_face = _start_face;
-		start_edge = _start_edge;
+	              int _strip_id=-1, int _experiment_id=-1)
+			: faces(), start_face(_start_face), start_face_index(-1),
+			start_edge(_start_edge) {
 		// pick first and second vertex according to the
 		// winding of start_face
 		if (start_face->get_vertex_winding(start_edge->ev0, start_edge->ev1) == 0) {
@@ -177,63 +179,83 @@ class TriangleStrip {
 			face->test_strip_id = -1;
 		}
 	}
+
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+	// XXX these functions are not used for now (see BreakTest comment below)
+	/*
+	def _AlwaysTrue(face):
+	    """Utility for building face traversal list"""
+	    return 1
+
+	def _UniqueFace(face):
+	    """Utility for building face traversal list"""
+	    v0,v1,v2=face.v
+	    bv0,bv1,bv2=0,0,0
+	    for faces in (ForwardFaces, BackwardFaces):
+	        for f in faces:
+	            fv = f.v
+	            if not bv0 and v0 in fv: bv0 = 1
+	            if not bv1 and v1 in fv: bv1 = 1
+	            if not bv2 and v2 in fv: bv2 = 1
+	            if bv0 and bv1 and bv2: return 0
+	        else: return 1
+	*/
+
+	//! Building face traversal list starting from the given face and
+	//! edge indices. Returns number of faces added.
+	int traverse_faces(int v0, int v1, MFacePtr next_face,
+	                   std::list<MFacePtr> & faces, bool forward) {
+		int count = 0;
+		next_face = find_other_face(v0, v1, next_face);
+		while ((next_face) && (!is_face_marked(next_face))) {
+			// XXX the nvidia stripifier says the following:
+			// XXX
+			// XXX   this tests to see if a face is "unique",
+			// XXX   meaning that its
+			// XXX   vertices aren't already in the list
+			// XXX   so, strips which "wrap-around" are not allowed
+			// XXX
+			// XXX not sure why this is a problem, or, if it would
+			// XXX be a problem, why nvtristrip only
+			// XXX checks this only during backward traversal, so
+			// XXX I simple ignore
+			// XXX this (rare) problem for now :-)
+			/* if not BreakTest(NextFace): break */
+			int v2 = next_face->get_other_vertex(v0, v1);
+			v0 = v1;
+			v1 = v2;
+			if (forward) {
+				faces.push_back(next_face);
+			} else {
+				faces.push_front(next_face);
+			};
+			mark_face(next_face);
+			next_face = find_other_face(v0, v1, next_face);
+			count++;
+		};
+		return count;
+	};
+
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	//! Builds the face strip forwards, then backwards, and returns
+	//! the joined list.
+	void build() {
+		faces.clear();
+		int v0 = start_ev0;
+		int v1 = start_ev1;
+		int v2 = start_face->get_other_vertex(v0, v1);
+		mark_face(start_face);
+		faces.push_back(start_face);
+		// while traversing backwards, start face gets shifted forward
+		traverse_faces(v1, v2, start_face, faces, true);
+		start_face_index = traverse_faces(v1, v0, start_face, faces, false);
+	};
 };
 
 /*
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def Build(self):
-        """Builds the face strip forwards, then backwards, and returns the joined list"""
-
-        ForwardFaces = []
-        self.Faces = BackwardFaces = []
-
-        def _AlwaysTrue(face):
-            """Utility for building face traversal list"""
-            return 1
-
-        def _UniqueFace(face):
-            """Utility for building face traversal list"""
-            v0,v1,v2=face.v
-            bv0,bv1,bv2=0,0,0
-            for faces in (ForwardFaces, BackwardFaces):
-                for f in faces:
-                    fv = f.v
-                    if not bv0 and v0 in fv: bv0 = 1
-                    if not bv1 and v1 in fv: bv1 = 1
-                    if not bv2 and v2 in fv: bv2 = 1
-                    if bv0 and bv1 and bv2: return 0
-                else: return 1
-
-        def _TraverseFaces(Indices, NextFace, FaceList, BreakTest):
-            """Utility for building face traversal list"""
-            nv0,nv1 = Indices[-2:]
-            NextFace = _FindOtherFace(nv0, nv1, NextFace)
-            while NextFace and not self.IsFaceMarked(NextFace):
-                if not BreakTest(NextFace): break
-                nv0, nv1 = nv1, NextFace.OtherVertex(nv0, nv1)
-                FaceList.append(NextFace)
-                self.MarkFace(NextFace)
-                Indices.append(nv1)
-                NextFace = _FindOtherFace(nv0, nv1, NextFace)
-
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        v0,v1 = self.StartEdgeOrder
-        v2 = self.StartFace.OtherVertex(v0,v1)
-        self.MarkFace(self.StartFace)
-        ForwardFaces.append(self.StartFace)
-
-        _TraverseFaces([v0,v1,v2], self.StartFace, ForwardFaces, _AlwaysTrue)
-        _TraverseFaces([v2,v1,v0], self.StartFace, BackwardFaces, _UniqueFace)
-
-        // Combine the Forward and Backward results
-        BackwardFaces.reverse()
-        self.StartFaceIndex = len(BackwardFaces)
-        BackwardFaces.extend(ForwardFaces)
-        self.Faces = BackwardFaces
-        return self.Faces
 
     def Commit(self, TaskProgress=None):
         del self.ExperimentId
