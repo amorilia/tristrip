@@ -165,9 +165,9 @@ BOOST_AUTO_TEST_CASE(add_face_test) {
 	BOOST_CHECK_EQUAL(m.edges.size(), 7);
 	// add duplicate face
 	BOOST_CHECK_NO_THROW(m.add_face(2, 3, 4));
-	boost::shared_ptr<MFace> f0 = m.add_face(10, 11, 12);
-	boost::shared_ptr<MFace> f1 = m.add_face(12, 10, 11);
-	boost::shared_ptr<MFace> f2 = m.add_face(11, 12, 10);
+	MFacePtr f0 = m.add_face(10, 11, 12);
+	MFacePtr f1 = m.add_face(12, 10, 11);
+	MFacePtr f2 = m.add_face(11, 12, 10);
 	BOOST_CHECK_EQUAL(f0, f1);
 	BOOST_CHECK_EQUAL(f0, f2);
 	// one extra face, three extra edges
@@ -178,15 +178,15 @@ BOOST_AUTO_TEST_CASE(add_face_test) {
 BOOST_AUTO_TEST_CASE(face_get_edge_test) {
 	// construct mesh
 	Mesh m;
-	boost::shared_ptr<MFace> f0 = m.add_face(0, 1, 2);
-	boost::shared_ptr<MFace> f1 = m.add_face(2, 1, 3);
-	boost::shared_ptr<MFace> f2 = m.add_face(2, 3, 4);
+	MFacePtr f0 = m.add_face(0, 1, 2);
+	MFacePtr f1 = m.add_face(2, 1, 3);
+	MFacePtr f2 = m.add_face(2, 3, 4);
 	// throw on illegal index?
 	BOOST_CHECK_THROW(f0->get_edge(0, 3), std::runtime_error);
 	BOOST_CHECK_THROW(f0->get_edge(3, 0), std::runtime_error);
 	BOOST_CHECK_THROW(f0->get_edge(3, 4), std::runtime_error);
 	// correct edge?
-	boost::shared_ptr<const MEdge> e0, e1;
+	MEdgePtr e0, e1;
 	e0 = f0->get_edge(0, 1);
 	e1 = f0->get_edge(1, 0);
 	BOOST_CHECK_EQUAL(e0, e1);
@@ -212,14 +212,11 @@ BOOST_AUTO_TEST_CASE(face_get_edge_test) {
 BOOST_AUTO_TEST_CASE(face_get_common_edges_test) {
 	// construct mesh
 	Mesh m;
-	boost::shared_ptr<MFace> f0;
-	boost::shared_ptr<MFace> f1;
-	boost::shared_ptr<MFace> f2;
-	f0 = m.add_face(0, 1, 2);
-	f1 = m.add_face(2, 1, 3);
-	f2 = m.add_face(2, 3, 4);
+	MFacePtr f0 = m.add_face(0, 1, 2);
+	MFacePtr f1 = m.add_face(2, 1, 3);
+	MFacePtr f2 = m.add_face(2, 3, 4);
 	// correct edge?
-	std::vector<boost::shared_ptr<const MEdge> > common;
+	std::vector<MEdgePtr> common;
 	common = f0->get_common_edges(*f2);
 	BOOST_CHECK_EQUAL(common.size(), 0);
 	common = f0->get_common_edges(*f1);
@@ -234,6 +231,36 @@ BOOST_AUTO_TEST_CASE(face_get_common_edges_test) {
 	BOOST_CHECK_EQUAL(common[1]->ev1, 2);
 	BOOST_CHECK_EQUAL(common[2]->ev0, 0);
 	BOOST_CHECK_EQUAL(common[2]->ev1, 2);
+}
+
+BOOST_AUTO_TEST_CASE(edge_get_next_face_test) {
+	// construct mesh
+	Mesh m;
+	MFacePtr f0 = m.add_face(0, 1, 2);
+	MFacePtr f1 = m.add_face(2, 1, 3);
+	MFacePtr f2 = m.add_face(2, 3, 4);
+	MFacePtr f3 = m.add_face(5, 3, 2);
+	MEdgePtr e;
+	// single face: returns no next face
+	e = f0->get_edge(0, 1);
+	MEdge::Faces::const_iterator face_iter = e->faces.begin();
+	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), MFacePtr());
+	// two faces: returns them alternatively
+	e = f0->get_edge(1, 2);
+	face_iter = e->faces.begin();
+	BOOST_CHECK_EQUAL(MFacePtr(*face_iter), f0);
+	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f1);
+	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f0);
+	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f1);
+	// three faces...
+	e = f3->get_edge(2, 3);
+	face_iter = e->faces.begin();
+	BOOST_CHECK_EQUAL(MFacePtr(*face_iter), f1);
+	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f2);
+	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f3);
+	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f1);
+	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f2);
+	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f3);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

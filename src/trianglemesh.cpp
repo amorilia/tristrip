@@ -108,6 +108,20 @@ MEdge::MEdge(const Edge & edge) : Edge(edge), faces() {
 	// nothing to do: faces are set in Mesh::add_face.
 };
 
+MFacePtr MEdge::get_next_face(Faces::const_iterator & face_iter) const {
+	// if there is no next face: we are done
+	if (faces.size() <= 1) {
+		return MFacePtr();
+	}
+	// advance the iterator
+	do {
+		face_iter++;
+		if (face_iter == faces.end()) face_iter = faces.begin();
+	} while (face_iter->expired());
+	// return result to new pointer
+	return MFacePtr(*face_iter);
+};
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Face::Face(int _v0, int _v1, int _v2) {
@@ -183,29 +197,26 @@ MFace::MFace(const Face & face) : Face(face), edges() {
 	// nothing to do
 };
 
-boost::shared_ptr<const MEdge>
-MFace::get_edge(int ev0, int ev1) const {
+MEdgePtr MFace::get_edge(int ev0, int ev1) const {
 	if (ev0 == ev1)
 		throw std::runtime_error("Vertex indices shouldn't be identical.");
 	if (((ev0 == v0) && (ev1 == v1)) || ((ev0 == v1) && (ev1 == v0)))
-		return boost::shared_ptr<const MEdge>(edges[0]);
+		return edges[0];
 	if (((ev0 == v1) && (ev1 == v2)) || ((ev0 == v2) && (ev1 == v1)))
-		return boost::shared_ptr<const MEdge>(edges[1]);
+		return edges[1];
 	if (((ev0 == v2) && (ev1 == v0)) || ((ev0 == v0) && (ev1 == v2)))
-		return boost::shared_ptr<const MEdge>(edges[2]);
+		return edges[2];
 	// bug!
 	throw std::runtime_error("Invalid vertex index.");
 }
 
-std::vector<boost::shared_ptr<const MEdge> >
-MFace::get_common_edges(const MFace & otherface) const {
+std::vector<MEdgePtr> MFace::get_common_edges(const MFace & otherface) const {
 	//return [edge for edge in otherface.edges if edge in self.edges]
-	std::vector<boost::shared_ptr<const MEdge> > result;
+	std::vector<MEdgePtr> result;
 	for (int i=0; i<3; i++) {
-		boost::shared_ptr<const MEdge> edge_i(edges[i]);
 		for (int j=0; j<3; j++) {
-			if (edge_i == boost::shared_ptr<const MEdge>(otherface.edges[j])) {
-				result.push_back(edge_i);
+			if (edges[i] == otherface.edges[j]) {
+				result.push_back(edges[i]);
 				break; // no otherface edges can match, so break j loop
 			}
 		}
@@ -215,16 +226,16 @@ MFace::get_common_edges(const MFace & otherface) const {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-boost::shared_ptr<MEdge> Mesh::add_edge(int ev0, int ev1) {
+MEdgePtr Mesh::add_edge(int ev0, int ev1) {
 	// create edge index and search if edge already exists in mesh
 	Edge edge_index(ev0, ev1);
 	EdgeMap::const_iterator edge_iter = edges.find(edge_index);
-	if (edge_iter != edges.end()) {
+	if ((edge_iter != edges.end()) && (!edge_iter->second.expired())) {
 		// edge already exists!
-		return edge_iter->second;
+		return MEdgePtr(edge_iter->second);
 	} else {
 		// create edge
-		boost::shared_ptr<MEdge> edge(new MEdge(edge_index));
+		MEdgePtr edge(new MEdge(edge_index));
 		edges[edge_index] = edge;
 		return edge;
 	};
@@ -232,7 +243,7 @@ boost::shared_ptr<MEdge> Mesh::add_edge(int ev0, int ev1) {
 
 Mesh::Mesh() : faces(), edges() {};
 
-boost::shared_ptr<MFace> Mesh::add_face(int v0, int v1, int v2) {
+MFacePtr Mesh::add_face(int v0, int v1, int v2) {
 	// create face index and search if face already exists in mesh
 	Face face_index(v0, v1, v2);
 	FaceMap::const_iterator face_iter = faces.find(face_index);
@@ -241,15 +252,15 @@ boost::shared_ptr<MFace> Mesh::add_face(int v0, int v1, int v2) {
 		return face_iter->second;
 	} else {
 		// create face
-		boost::shared_ptr<MFace> face(new MFace(face_index));
+		MFacePtr face(new MFace(face_index));
 		faces[face_index] = face;
 		// create edges
 		// careful here: face indices may have been reodered!!!
 		// and edges[0] *must* correspond to (face->v0, face->v1) etc.
 		// so we *must* use face->vi rather than vi
-		boost::shared_ptr<MEdge> edge01 = add_edge(face->v0, face->v1);
-		boost::shared_ptr<MEdge> edge12 = add_edge(face->v1, face->v2);
-		boost::shared_ptr<MEdge> edge20 = add_edge(face->v2, face->v0);
+		MEdgePtr edge01 = add_edge(face->v0, face->v1);
+		MEdgePtr edge12 = add_edge(face->v1, face->v2);
+		MEdgePtr edge20 = add_edge(face->v2, face->v0);
 		// set up weak pointers between face and edges
 		face->edges.push_back(edge01);
 		face->edges.push_back(edge12);

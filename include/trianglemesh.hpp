@@ -72,6 +72,14 @@ POSSIBILITY OF SUCH DAMAGE.
 //~ Definitions
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+// forward declarations
+
+class MEdge;
+typedef boost::shared_ptr<MEdge> MEdgePtr;
+
+class MFace;
+typedef boost::shared_ptr<MFace> MFacePtr;
+
 //! A standalone non-degenerate edge, represented as an ordered pair.
 class Edge {
 public:
@@ -85,16 +93,18 @@ public:
 	std::vector<int> get_common_vertices(const Edge & otheredge) const;
 };
 
-class MFace; // forward declaration
-
 //! A non-degenerate edge with links to other parts of a mesh.
 class MEdge : public Edge {
 public:
-	//! Note: faces are set in Mesh::add_face.
-	std::vector<boost::weak_ptr<const MFace> > faces;
+	typedef std::vector<boost::weak_ptr<MFace> > Faces;
+	Faces faces; //! Note: faces are set in Mesh::add_face.
 
 	//! Note: don't call directly! Use Mesh::add_face.
 	MEdge(const Edge & edge);
+
+	//! Get next face (keeps eternally looping, and advances face_iter).
+	//! If there is only a single face, then returns MFacePtr()
+	MFacePtr get_next_face(Faces::const_iterator & face_iter) const;
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -124,18 +134,17 @@ public:
 //! A non-degenerate face with links to other parts of a mesh.
 class MFace : public Face {
 public:
-	//! Note: edges are set in Mesh::add_face.
-	std::vector<boost::weak_ptr<const MEdge> > edges;
+	typedef std::vector<MEdgePtr> Edges;
+	Edges edges; //! Note: edges are set in Mesh::add_face.
 
 	//! Note: don't call directly! Use Mesh::add_face.
 	MFace(const Face & face);
 
-	//! Get pointer to edge object.
-	boost::shared_ptr<const MEdge>
-	get_edge(int ev0, int ev1) const;
+	//! Get pointer to face edge spanning two vertices.
+	MEdgePtr get_edge(int ev0, int ev1) const;
 
-	std::vector<boost::shared_ptr<const MEdge> >
-	get_common_edges(const MFace & otherface) const;
+	//! Get pointers to common edges between this and other face.
+	std::vector<MEdgePtr> get_common_edges(const MFace & otherface) const;
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -146,20 +155,21 @@ private:
 	//! Create new edge for mesh, or return existing edge. List of
 	//! faces of the new edge will be empty and needs to be
 	//! manually updated. For internal use only.
-	boost::shared_ptr<MEdge> add_edge(int ev0, int ev1);
+	MEdgePtr add_edge(int ev0, int ev1);
 
 public:
 	// We use maps to avoid duplicate entries and quickly detect
 	// adjacent faces and adjacent edges.
 
-	typedef std::map<Face, boost::shared_ptr<MFace> > FaceMap;
+	typedef std::map<Face, MFacePtr> FaceMap;
 	FaceMap faces; //! Map for mesh faces.
-	typedef std::map<Edge, boost::shared_ptr<MEdge> > EdgeMap;
-	EdgeMap edges; //! Map for mesh edges.
+	typedef std::map<Edge, boost::weak_ptr<MEdge> > EdgeMap;
+	EdgeMap edges; //! Map for mesh edges. Edges are owned by
+	//! faces so this is a weak pointer.
 
 	//! Initialize empty mesh.
 	Mesh();
 
 	//! Create new face for mesh, or return existing face.
-	boost::shared_ptr<MFace> add_face(int v0, int v1, int v2);
+	MFacePtr add_face(int v0, int v1, int v2);
 };
