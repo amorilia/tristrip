@@ -79,10 +79,10 @@ public:
 	int get_vertex_winding(int pv0, int pv1) const;
 
 	//! Get next vertex (keeps eternally looping).
-	int next_vertex(int vi);
+	int get_next_vertex(int vi) const;
 
 	//! Get other vertex.
-	int other_vertex(int pv0, int pv1);
+	int get_other_vertex(int pv0, int pv1) const;
 
 	//! Get pointer to edge object.
 	boost::shared_ptr<const Edge>

@@ -81,7 +81,7 @@ int Face::get_vertex_winding(int pv0, int pv1) const {
 	throw std::runtime_error("Invalid vertex index.");
 }
 
-int Face::next_vertex(int vi) {
+int Face::get_next_vertex(int vi) const {
 	if (vi == v0) return v1;
 	else if (vi == v1) return v2;
 	else if (vi == v2) return v0;
@@ -89,7 +89,7 @@ int Face::next_vertex(int vi) {
 	throw std::runtime_error("Invalid vertex index.");
 }
 
-int Face::other_vertex(int pv0, int pv1) {
+int Face::get_other_vertex(int pv0, int pv1) const {
 	if (pv0 == pv1)
 		throw std::runtime_error("Vertex indices shouldn't be identical.");
 	if (((pv0 == v0) && (pv1 == v1)) || ((pv0 == v1) && (pv1 == v0)))

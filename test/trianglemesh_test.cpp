@@ -72,6 +72,31 @@ BOOST_AUTO_TEST_CASE(face_winding_test) {
 	BOOST_CHECK_EQUAL(f.get_vertex_winding(5, 7), 1);
 }
 
+BOOST_AUTO_TEST_CASE(face_next_vertex_test) {
+	Face f(9, 3, 18);
+	// throw on illegal index?
+	BOOST_CHECK_THROW(f.get_next_vertex(5), std::runtime_error);
+	// correct next vertex?
+	BOOST_CHECK_EQUAL(f.get_next_vertex(9), 3);
+	BOOST_CHECK_EQUAL(f.get_next_vertex(3), 18);
+	BOOST_CHECK_EQUAL(f.get_next_vertex(18), 9);
+}
+
+BOOST_AUTO_TEST_CASE(face_other_vertex_test) {
+	Face f(6, 2, 5);
+	// throw on illegal index?
+	BOOST_CHECK_THROW(f.get_other_vertex(6, 20), std::runtime_error);
+	BOOST_CHECK_THROW(f.get_other_vertex(60, 2), std::runtime_error);
+	BOOST_CHECK_THROW(f.get_other_vertex(60, 20), std::runtime_error);
+	// correct other vertex?
+	BOOST_CHECK_EQUAL(f.get_other_vertex(6, 2), 5);
+	BOOST_CHECK_EQUAL(f.get_other_vertex(2, 6), 5);
+	BOOST_CHECK_EQUAL(f.get_other_vertex(2, 5), 6);
+	BOOST_CHECK_EQUAL(f.get_other_vertex(5, 2), 6);
+	BOOST_CHECK_EQUAL(f.get_other_vertex(6, 5), 2);
+	BOOST_CHECK_EQUAL(f.get_other_vertex(5, 6), 2);
+}
+
 BOOST_AUTO_TEST_CASE(add_face_test) {
 	Mesh m;
 
