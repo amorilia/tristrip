@@ -253,16 +253,13 @@ public:
 		traverse_faces(v1, v2, start_face, faces, true);
 		start_face_index = traverse_faces(v1, v0, start_face, faces, false);
 	};
+
+	void commit() {
+		experiment_id = -1;
+	};
 };
 
 /*
-
-    def Commit(self, TaskProgress=None):
-        del self.ExperimentId
-        count = len(map(self.MarkFace, self.Faces))
-        if TaskProgress:
-            TaskProgress += count
-        return self
 
     def TriangleListIndices(self):
         result = []
