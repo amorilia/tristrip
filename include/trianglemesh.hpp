@@ -102,6 +102,7 @@ public:
 	//! Note: don't call directly! Use Mesh::add_face.
 	MEdge(const Edge & edge);
 
+	// XXX when finished, check if we really need this method
 	//! Get next face (keeps eternally looping, and advances face_iter).
 	//! If there is only a single face, then returns MFacePtr()
 	MFacePtr get_next_face(Faces::const_iterator & face_iter) const;

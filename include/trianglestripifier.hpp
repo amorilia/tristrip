@@ -56,21 +56,28 @@ POSSIBILITY OF SUCH DAMAGE.
 //~ Definitions
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _FindOtherFace(ev0, ev1, face):
-    try:
-        edge = face.GetEdge(ev0,ev1)
-        // find a face with different edge windings
-        result = edge.NextFace(face)
-        if result:
-            windings = face.GetVertexWinding(ev0,ev1), result.GetVertexWinding(ev0,ev1)
-            while result and (windings[0] == windings[1]):
-                result = edge.NextFace(result)
-                if not result: return None
-                if result == face: return None
-                windings = face.GetVertexWinding(ev0,ev1), result.GetVertexWinding(ev0,ev1)
-        return result
-    except KeyError:
-        return None
+//! Find another face, also adjacent to edge, with different edge windings.
+MFacePtr find_other_face(int ev0, int ev1, MFacePtr face) {
+	// (Note: implementation is slightly simpler compared to the
+	// original algorithm but in most use cases it gives identical
+	// results.)
+	if (!face) throw std::runtime_error("Must specify face.");
+	MEdgePtr edge = face->get_edge(ev0, ev1);
+	for (MEdge::Faces::const_iterator face_iter = edge->faces.begin();
+	        face_iter != edge->faces.end(); face_iter++) {
+		// skip expired faces
+		// (lock() returns MFacePtr() on expired faces!)
+		MFacePtr otherface = face_iter->lock();
+		if (!otherface) continue;
+		// skip given face
+		if (otherface == face) continue;
+		// return other face if it has different winding along the edge
+		if (face->get_vertex_winding(ev0, ev1) != otherface->get_vertex_winding(ev0, ev1))
+			return otherface;
+	};
+	return MFacePtr();
+}
+/*
 
 def _Counter():
     i = 1
@@ -310,10 +317,8 @@ class ExperimentGLSelector(object):
 //~ TriangleStripifier
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-/*
-Heavily adapted from NvTriStrip.
-Origional can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
-*/
+//Heavily adapted from NvTriStrip.
+//Origional can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
 class TriangleStripifier(object):
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -495,3 +500,4 @@ class TriangleStripifier(object):
                 try: del face.StripId
                 except AttributeError: pass
                 CleanFacesTask += 1
+*/
