@@ -237,10 +237,10 @@ int TriangleStrip::NUM_STRIPS = 0;
 typedef boost::shared_ptr<TriangleStrip> TriangleStripPtr;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//~ ExperimentGLSelector
+//~ ExperimentSelector
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class ExperimentGLSelector {
+class ExperimentSelector {
 public:
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Constants / Variables / Etc.
@@ -256,7 +256,7 @@ public:
 	//~ Definitions
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	ExperimentGLSelector(int _num_samples, int _min_strip_length)
+	ExperimentSelector(int _num_samples, int _min_strip_length)
 			: num_samples(_num_samples), min_strip_length(_min_strip_length),
 			strip_len_heuristic(1.0), best_score(0.0), best_sample() {};
 
@@ -291,7 +291,7 @@ class TriangleStripifier {
 	//~ Constants / Variables / Etc.
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	static ExperimentGLSelector selector;
+	static ExperimentSelector selector;
 
 };
 
@@ -473,4 +473,4 @@ class TriangleStripifier {
                 CleanFacesTask += 1
 */
 
-ExperimentGLSelector TriangleStripifier::selector(3, 0);
+ExperimentSelector TriangleStripifier::selector(3, 0);
