@@ -43,8 +43,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 BOOST_AUTO_TEST_SUITE(trianglestripifier_test_suite)
 
-BOOST_AUTO_TEST_CASE(find_start_face_test) {
-	// construct slightly more complicated mesh
+BOOST_AUTO_TEST_CASE(find_start_face_good_reset_point_test) {
 	MeshPtr m(new Mesh());
 	MFacePtr f0 = m->add_face(2, 1, 7);
 	MFacePtr f1 = m->add_face(0, 1, 2);
@@ -63,7 +62,29 @@ BOOST_AUTO_TEST_CASE(find_start_face_test) {
 	BOOST_CHECK_EQUAL(f3->get_next_face(5, 3), MFacePtr());
 	BOOST_CHECK_EQUAL(f3->get_next_face(3, 2), MFacePtr());
 	BOOST_CHECK_EQUAL(f3->get_next_face(2, 5), MFacePtr());
-	BOOST_CHECK_EQUAL(t.find_start_face(), f1);
+
+	// f1 is lexically first triangle with only one neighbour
+	t.find_start_face();
+	BOOST_CHECK_EQUAL(t.start_face_iter->second, f1);
+	f1->strip_id = 0; // fake that it is stripified
+
+	// f0 comes lexically after f1
+	t.find_good_reset_point();
+	BOOST_CHECK_EQUAL(t.start_face_iter->second, f0);
+	// try again: should find the same
+	t.find_good_reset_point();
+	BOOST_CHECK_EQUAL(t.start_face_iter->second, f0);
+	f0->strip_id = 1; // fake that it is stripified
+
+	// f3 comes lexically first after f0
+	t.find_good_reset_point();
+	BOOST_CHECK_EQUAL(t.start_face_iter->second, f3);
+	f3->strip_id = 2; // fake that it is stripified
+
+	// f2 comes lexically last
+	t.find_good_reset_point();
+	BOOST_CHECK_EQUAL(t.start_face_iter->second, f2);
+	f2->strip_id = 3; // fake that it is stripified
 }
 
 BOOST_AUTO_TEST_SUITE_END()

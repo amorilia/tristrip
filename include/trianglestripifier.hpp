@@ -295,31 +295,34 @@ public:
 
 	static ExperimentSelector selector;
 	MeshPtr mesh;
+	Mesh::FaceMap::const_iterator start_face_iter;
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Public Methods
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	TriangleStripifier(MeshPtr _mesh) : mesh(_mesh) {};
+	TriangleStripifier(MeshPtr _mesh) : mesh(_mesh), start_face_iter(_mesh->faces.begin()) {};
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Protected Methods
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	//! Find a good face to start stripification with.
-	MFacePtr find_start_face() {
-		MFacePtr bestface = (*mesh->faces.begin()).second;
+	//! Find a good face to start the very first strip with, and stores this
+	//! into start_face_iter.
+	Mesh::FaceMap::const_iterator find_start_face() {
+		Mesh::FaceMap::const_iterator bestface = mesh->faces.begin();
 		int bestscore = 0;
 		int faceindex = -1;
 
-		BOOST_FOREACH(Mesh::FaceMap::value_type face, mesh->faces) {
+		for (Mesh::FaceMap::const_iterator face = mesh->faces.begin();
+		        face != mesh->faces.end(); face++) {
 			faceindex++;
 			int score = 0;
 			// increase score for each edge that this face
 			// cannot build a non-trivial strip on (i.e. has
 			// an adjacent face with same orientation)
-			BOOST_FOREACH(MEdgePtr edge, face.second->edges) {
-				if (face.second->get_next_face(edge->ev0, edge->ev1) == MFacePtr()) {
+			BOOST_FOREACH(MEdgePtr edge, face->second->edges) {
+				if (face->second->get_next_face(edge->ev0, edge->ev1) == MFacePtr()) {
 					score++;
 				};
 			};
@@ -328,35 +331,46 @@ public:
 			// best possible score is 2:
 			// a face with only one neighbor
 			if (bestscore < score) {
-				bestface = face.second;
+				bestface = face;
 				bestscore = score;
 			};
 			if (bestscore >= 2) break;
 		};
-		return bestface;
+		start_face_iter = bestface;
+	};
+
+	//! Find a good face to start stripification, after some
+	//! strips have already been created. Result is stored in
+	//! start_face_iter.
+	//! Will store mesh->faces.end() when no more faces are left.
+	//! XXX Assumes that find_start_face has already been called.
+	void find_good_reset_point() {
+		int start_step = mesh->faces.size() / 10;
+		// XXX this is crap: map iterators only do ++
+
+		// XXX question: does it make sense to skip 1/10th of the mesh
+		// XXX even if some of these faces might have strip_id -1?
+		for (int i=0; i<start_step; i++) {
+			start_face_iter++;
+			if (start_face_iter == mesh->faces.end())
+				start_face_iter = mesh->faces.begin();
+		};
+		Mesh::FaceMap::const_iterator face = start_face_iter;
+		do {
+			if (face->second->strip_id == -1) {
+				// face not used in any strip, so start there for next strip
+				start_face_iter = face;
+				return;
+			};
+			face++;
+			if (face == mesh->faces.end())
+				face = mesh->faces.begin();
+		} while (face != start_face_iter);
+		// We've exhausted all the faces... so lets exit this loop
+		start_face_iter = mesh->faces.end();
 	};
 };
-
 /*
-
-    def _FindGoodResetPoint(self, mesh):
-        FaceList = mesh.Faces
-        lenFaceList = len(mesh.Faces)
-        startstep = lenFaceList // 10
-        startidx = self._FindStartFaceIndex(FaceList)
-        while True: //startidx is not None:
-            for idx in _xwrap(startidx, lenFaceList):
-                face = FaceList[idx]
-                // If this face isn't used by another strip
-                if getattr(face, 'StripId', None) is None:
-                    startidx = idx + startstep
-                    while startidx >= lenFaceList:
-                        startidx -= lenFaceList
-                    yield face
-                    break
-            else:
-                // We've exhausted all the faces... so lets exit this loop
-                break
 
     def _FindTraversal(self, strip):
         mesh = strip.StartFace.mesh
