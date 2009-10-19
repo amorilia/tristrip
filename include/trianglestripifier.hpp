@@ -65,9 +65,9 @@ MFacePtr find_other_face(int ev0, int ev1, MFacePtr face) {
 	MEdgePtr edge = face->get_edge(ev0, ev1);
 	for (MEdge::Faces::const_iterator face_iter = edge->faces.begin();
 	        face_iter != edge->faces.end(); face_iter++) {
+		MFacePtr otherface = face_iter->lock();
 		// skip expired faces
 		// (lock() returns MFacePtr() on expired faces!)
-		MFacePtr otherface = face_iter->lock();
 		if (!otherface) continue;
 		// skip given face
 		if (otherface == face) continue;
@@ -184,31 +184,11 @@ public:
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-	// XXX these functions are not used for now (see BreakTest comment below)
-	/*
-	def _AlwaysTrue(face):
-	    """Utility for building face traversal list"""
-	    return 1
-
-	def _UniqueFace(face):
-	    """Utility for building face traversal list"""
-	    v0,v1,v2=face.v
-	    bv0,bv1,bv2=0,0,0
-	    for faces in (ForwardFaces, BackwardFaces):
-	        for f in faces:
-	            fv = f.v
-	            if not bv0 and v0 in fv: bv0 = 1
-	            if not bv1 and v1 in fv: bv1 = 1
-	            if not bv2 and v2 in fv: bv2 = 1
-	            if bv0 and bv1 and bv2: return 0
-	        else: return 1
-	*/
-
 	//! Building face traversal list starting from the start_face and
 	//! the given edge indices. Returns number of faces added.
 	int traverse_faces(int v0, int v1, bool forward) {
 		int count = 0;
-		next_face = find_other_face(v0, v1, start_face);
+		MFacePtr next_face = find_other_face(v0, v1, start_face);
 		while ((next_face) && (!is_face_marked(next_face))) {
 			// XXX the nvidia stripifier says the following:
 			// XXX

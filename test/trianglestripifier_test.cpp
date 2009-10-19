@@ -67,4 +67,26 @@ BOOST_AUTO_TEST_CASE(find_other_face_test_1) {
 	BOOST_CHECK_EQUAL(find_other_face(3, 4, f2), MFacePtr());
 }
 
+BOOST_AUTO_TEST_CASE(triangle_strip_build_test) {
+	// construct slightly more complicated mesh
+	Mesh m;
+	MFacePtr f0 = m.add_face(0, 1, 2);
+	MFacePtr f1 = m.add_face(2, 1, 7);
+	MFacePtr f2 = m.add_face(2, 7, 4);
+	MFacePtr f3 = m.add_face(5, 3, 2);
+	MFacePtr f4 = m.add_face(2, 1, 9);
+	TriangleStrip t(f1, f1->get_edge(7, 2));
+	t.build();
+	std::list<int>::const_iterator i = t.strip.begin();
+	BOOST_CHECK_EQUAL(*i, 4); i++;
+	BOOST_CHECK_EQUAL(*i, 7); i++;
+	BOOST_CHECK_EQUAL(*i, 2); i++;
+	BOOST_CHECK_EQUAL(*i, 1); i++;
+	BOOST_CHECK_EQUAL(*i, 0); i++;
+	std::list<MFacePtr>::const_iterator j = t.faces.begin();
+	BOOST_CHECK_EQUAL(*j, f2); j++;
+	BOOST_CHECK_EQUAL(*j, f1); j++;
+	BOOST_CHECK_EQUAL(*j, f0); j++;
+}
+
 BOOST_AUTO_TEST_SUITE_END()
