@@ -78,15 +78,23 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test) {
 	TriangleStrip t(f1, f1->get_edge(7, 2));
 	t.build();
 	std::list<int>::const_iterator i = t.strip.begin();
-	BOOST_CHECK_EQUAL(*i, 4); i++;
-	BOOST_CHECK_EQUAL(*i, 7); i++;
-	BOOST_CHECK_EQUAL(*i, 2); i++;
-	BOOST_CHECK_EQUAL(*i, 1); i++;
-	BOOST_CHECK_EQUAL(*i, 0); i++;
+	BOOST_CHECK_EQUAL(*i, 4);
+	i++;
+	BOOST_CHECK_EQUAL(*i, 7);
+	i++;
+	BOOST_CHECK_EQUAL(*i, 2);
+	i++;
+	BOOST_CHECK_EQUAL(*i, 1);
+	i++;
+	BOOST_CHECK_EQUAL(*i, 0);
+	i++;
 	std::list<MFacePtr>::const_iterator j = t.faces.begin();
-	BOOST_CHECK_EQUAL(*j, f2); j++;
-	BOOST_CHECK_EQUAL(*j, f1); j++;
-	BOOST_CHECK_EQUAL(*j, f0); j++;
+	BOOST_CHECK_EQUAL(*j, f2);
+	j++;
+	BOOST_CHECK_EQUAL(*j, f1);
+	j++;
+	BOOST_CHECK_EQUAL(*j, f0);
+	j++;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

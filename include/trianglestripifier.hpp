@@ -255,46 +255,50 @@ public:
 
 int TriangleStrip::NUM_STRIPS = 0;
 
+typedef boost::shared_ptr<TriangleStrip> TriangleStripPtr;
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ ExperimentGLSelector
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+class ExperimentGLSelector {
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//~ Constants / Variables / Etc.
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	int num_samples;
+	float strip_len_heuristic;
+	int min_strip_length;
+	float best_score;
+	std::list<TriangleStripPtr> best_sample; // XXX rename to best_experiment?
+
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//~ Definitions
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	ExperimentGLSelector(int _num_samples, int _min_strip_length)
+			: num_samples(_num_samples), min_strip_length(_min_strip_length),
+			strip_len_heuristic(1.0), best_score(0.0), best_sample() {};
+
+	void update_score(std::list<TriangleStripPtr> experiment) {
+		int stripsize = 0;
+		for (std::list<TriangleStripPtr>::const_iterator strip = experiment.begin();
+		        strip != experiment.end(); strip++) {
+			stripsize += strip->faces.size();
+		};
+		float score = strip_len_heuristic * stripsize / experiment.size();
+		if (score > best_score) {
+			best_score = score;
+			best_sample = experiment;
+		};
+	}
+
+	void clear(self) {
+		best_score = 0.0;
+		best_sample.clear();
+	}
+};
 /*
-
-class ExperimentGLSelector(object):
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    //~ Constants / Variables / Etc.
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    Samples = 3
-    StripLenHeuristic = 1.0
-    MinStripLength = 0
-
-    BestScore = -1
-    BestSample = None
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    //~ Definitions
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def __init__(self, Samples, MinStripLength):
-        self.Samples = Samples
-        self.MinStripLength = MinStripLength
-
-    def Score(self, experiment):
-        stripsize = 0
-        for strip in experiment:
-            stripsize += len(strip.Faces)
-        score = self.StripLenHeuristic * stripsize / len(experiment)
-        if score > self.BestScore:
-            self.BestScore = score
-            self.BestSample = experiment
-
-    def Result(self):
-        result = self.BestSample
-        del self.BestScore
-        del self.BestSample
-        return result
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ TriangleStripifier
@@ -470,7 +474,8 @@ class TriangleStripifier(object):
                     selector.Score(exp)
 
                 // Get the best experiment according to the selector
-                BestExperiment = selector.Result()
+                BestExperiment = selector.best_sample // XXX make copy!
+		selector.clear()
                 // And commit it to the resultset
                 for each in BestExperiment:
                     yield each.Commit(StripifyTask)
