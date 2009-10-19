@@ -41,29 +41,36 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "trianglestripifier.hpp"
 
-BOOST_AUTO_TEST_SUITE(trianglestripifier_test_suite)
+BOOST_AUTO_TEST_SUITE(trianglestrip_test_suite)
 
-BOOST_AUTO_TEST_CASE(find_start_face_test) {
+BOOST_AUTO_TEST_CASE(triangle_strip_build_test) {
 	// construct slightly more complicated mesh
-	MeshPtr m(new Mesh());
-	MFacePtr f0 = m->add_face(2, 1, 7);
-	MFacePtr f1 = m->add_face(0, 1, 2);
-	MFacePtr f2 = m->add_face(2, 7, 4);
-	MFacePtr f3 = m->add_face(5, 3, 2);
-	TriangleStripifier t(m);
-	BOOST_CHECK_EQUAL(f0->get_next_face(2, 1), f1);
-	BOOST_CHECK_EQUAL(f0->get_next_face(1, 7), MFacePtr());
-	BOOST_CHECK_EQUAL(f0->get_next_face(7, 2), f2);
-	BOOST_CHECK_EQUAL(f1->get_next_face(0, 1), MFacePtr());
-	BOOST_CHECK_EQUAL(f1->get_next_face(1, 2), f0);
-	BOOST_CHECK_EQUAL(f1->get_next_face(2, 0), MFacePtr());
-	BOOST_CHECK_EQUAL(f2->get_next_face(2, 7), f0);
-	BOOST_CHECK_EQUAL(f2->get_next_face(7, 4), MFacePtr());
-	BOOST_CHECK_EQUAL(f2->get_next_face(4, 2), MFacePtr());
-	BOOST_CHECK_EQUAL(f3->get_next_face(5, 3), MFacePtr());
-	BOOST_CHECK_EQUAL(f3->get_next_face(3, 2), MFacePtr());
-	BOOST_CHECK_EQUAL(f3->get_next_face(2, 5), MFacePtr());
-	BOOST_CHECK_EQUAL(t.find_start_face(), f1);
+	Mesh m;
+	MFacePtr f0 = m.add_face(0, 1, 2);
+	MFacePtr f1 = m.add_face(2, 1, 7);
+	MFacePtr f2 = m.add_face(2, 7, 4);
+	MFacePtr f3 = m.add_face(5, 3, 2);
+	MFacePtr f4 = m.add_face(2, 1, 9);
+	TriangleStrip t(f1, f1->get_edge(7, 2));
+	t.build();
+	std::list<int>::const_iterator i = t.strip.begin();
+	BOOST_CHECK_EQUAL(*i, 4);
+	i++;
+	BOOST_CHECK_EQUAL(*i, 7);
+	i++;
+	BOOST_CHECK_EQUAL(*i, 2);
+	i++;
+	BOOST_CHECK_EQUAL(*i, 1);
+	i++;
+	BOOST_CHECK_EQUAL(*i, 0);
+	i++;
+	std::list<MFacePtr>::const_iterator j = t.faces.begin();
+	BOOST_CHECK_EQUAL(*j, f2);
+	j++;
+	BOOST_CHECK_EQUAL(*j, f1);
+	j++;
+	BOOST_CHECK_EQUAL(*j, f0);
+	j++;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

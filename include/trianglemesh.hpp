@@ -189,3 +189,5 @@ public:
 	//! Create new face for mesh, or return existing face.
 	MFacePtr add_face(int v0, int v1, int v2);
 };
+
+typedef boost::shared_ptr<Mesh> MeshPtr;

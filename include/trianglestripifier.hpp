@@ -50,6 +50,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include <boost/foreach.hpp>
+
 #include "trianglemesh.hpp"
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -286,70 +288,56 @@ public:
 //Heavily adapted from NvTriStrip.
 //Origional can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
 class TriangleStripifier {
-
+public:
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Constants / Variables / Etc.
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	static ExperimentSelector selector;
+	MeshPtr mesh;
 
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//~ Public Methods
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	TriangleStripifier(MeshPtr _mesh) : mesh(_mesh) {};
+
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//~ Protected Methods
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	//! Find a good face to start stripification with.
+	MFacePtr find_start_face() {
+		MFacePtr bestface = (*mesh->faces.begin()).second;
+		int bestscore = 0;
+		int faceindex = -1;
+
+		BOOST_FOREACH(Mesh::FaceMap::value_type face, mesh->faces) {
+			faceindex++;
+			int score = 0;
+			// increase score for each edge that this face
+			// cannot build a non-trivial strip on (i.e. has
+			// an adjacent face with same orientation)
+			BOOST_FOREACH(MEdgePtr edge, face.second->edges) {
+				if (face.second->get_next_face(edge->ev0, edge->ev1) == MFacePtr()) {
+					score++;
+				};
+			};
+			// a score of 3 signifies a lonely face
+			if (score >= 3) continue;
+			// best possible score is 2:
+			// a face with only one neighbor
+			if (bestscore < score) {
+				bestface = face.second;
+				bestscore = score;
+			};
+			if (bestscore >= 2) break;
+		};
+		return bestface;
+	};
 };
 
 /*
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    //~ Public Methods
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def Stripify(self, mesh, TaskProgress=None):
-        self.TriangleList = []
-        self.TriangleStrips = []
-        //self.TriangleFans = []
-
-        // TODO: Could find triangle fans here
-        Strips = self._FindAllStrips(mesh, TaskProgress)
-        for strip in Strips:
-            if len(strip.Faces) < self.GLSelector.MinStripLength:
-                self.TriangleList.extend(strip.TriangleListIndices())
-            else:
-                self.TriangleStrips.append(strip.TriangleStripIndices())
-
-        result = [('list', self.TriangleList), ('strip', self.TriangleStrips)]//, ('fan',self.TriangleFans) ]
-        return result
-
-    __call__ = Stripify
-
-    def StripifyIter(self, mesh, TaskProgress=None):
-        // TODO: Could find triangle fans here
-        Strips = self._FindAllStrips(mesh, TaskProgress)
-        for strip in Strips:
-            if len(strip.Faces) < self.GLSelector.MinStripLength:
-               yield 'list', strip.TriangleListIndices()
-            else:
-               yield 'strip', strip.TriangleStripIndices()
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    //~ Protected Methods
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def _FindStartFaceIndex(self, FaceList):
-        """Find a good face to start stripification with."""
-        bestfaceindex = 0
-        bestscore = 0
-        faceindex = -1
-
-        for face in FaceList:
-            faceindex  += 1
-            score = 0
-            for edge in face.edges:
-                score += not edge.NextFace(face) and 1 or 0
-            // best possible score is 2 -- a face with only one neighbor
-            // (a score of 3 signifies a lonely face)
-            if bestscore < score < 3:
-                bestfaceindex, bestscore = faceindex, score
-                if bestscore >= 2:
-                    break
-        return bestfaceindex
 
     def _FindGoodResetPoint(self, mesh):
         FaceList = mesh.Faces
@@ -404,6 +392,7 @@ class TriangleStripifier {
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  std::list<TriangleStripPtr> find_all_strips() {};
     def _FindAllStrips(self, mesh, TaskProgress=None):
         selector = self.GLSelector
         bCleanFaces = getattr(mesh, 'CleanFaces', 0)
