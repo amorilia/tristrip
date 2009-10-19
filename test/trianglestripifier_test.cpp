@@ -43,30 +43,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 BOOST_AUTO_TEST_SUITE(trianglestripifier_test_suite)
 
-BOOST_AUTO_TEST_CASE(find_other_face_test_0) {
-	// trivial case
-	BOOST_CHECK_THROW(find_other_face(1, 2, MFacePtr()), std::runtime_error);
-	// single triangle mesh
-	Mesh m;
-	MFacePtr f = m.add_face(0, 1, 2);
-	BOOST_CHECK_EQUAL(find_other_face(0, 1, f), MFacePtr());
-}
-
-BOOST_AUTO_TEST_CASE(find_other_face_test_1) {
-	// construct slightly more complicated mesh
-	Mesh m;
-	MFacePtr f0 = m.add_face(0, 1, 2);
-	MFacePtr f1 = m.add_face(2, 1, 3);
-	MFacePtr f2 = m.add_face(2, 3, 4);
-	MFacePtr f3 = m.add_face(5, 3, 2);
-	MFacePtr f4 = m.add_face(2, 1, 9); // faces added earlier on get priority when the strip is built, this is to check for that
-	// check the function by doing a quick strip traversal
-	MFacePtr f = f0;
-	BOOST_CHECK_EQUAL(find_other_face(1, 2, f0), f1);
-	BOOST_CHECK_EQUAL(find_other_face(2, 3, f1), f2);
-	BOOST_CHECK_EQUAL(find_other_face(3, 4, f2), MFacePtr());
-}
-
 BOOST_AUTO_TEST_CASE(triangle_strip_build_test) {
 	// construct slightly more complicated mesh
 	Mesh m;

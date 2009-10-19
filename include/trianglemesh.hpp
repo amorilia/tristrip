@@ -157,6 +157,10 @@ public:
 
 	//! Get pointers to common edges between this and other face.
 	std::vector<MEdgePtr> get_common_edges(const MFace & otherface) const;
+
+	//! Find another face, also adjacent to edge, with different
+	//! edge windings.
+	MFacePtr get_next_face(int ev0, int ev1);
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

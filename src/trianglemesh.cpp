@@ -226,6 +226,29 @@ std::vector<MEdgePtr> MFace::get_common_edges(const MFace & otherface) const {
 	return result;
 }
 
+MFacePtr MFace::get_next_face(int ev0, int ev1) {
+	// Note: Original name was FindOtherFace.
+	// Note: implementation is slightly simpler compared to the
+	// original RuneBlade FindOtherFace algorithm but in most use
+	// cases it gives identical results.
+	MEdgePtr edge = get_edge(ev0, ev1);
+	for (MEdge::Faces::const_iterator face_iter = edge->faces.begin();
+	        face_iter != edge->faces.end(); face_iter++) {
+		MFacePtr otherface = face_iter->lock();
+		// skip expired faces
+		// (lock() returns MFacePtr() on expired faces!)
+		if (!otherface) continue;
+		// skip given face
+		if (otherface.get() == this) continue;
+		// return other face if it has different winding along the edge
+		if (get_vertex_winding(ev0, ev1)
+		        != otherface->get_vertex_winding(ev0, ev1)) {
+			return otherface;
+		};
+	};
+	return MFacePtr();
+}
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MEdgePtr Mesh::add_edge(int ev0, int ev1) {

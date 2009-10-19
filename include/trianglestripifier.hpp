@@ -56,27 +56,6 @@ POSSIBILITY OF SUCH DAMAGE.
 //~ Definitions
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-//! Find another face, also adjacent to edge, with different edge windings.
-MFacePtr find_other_face(int ev0, int ev1, MFacePtr face) {
-	// (Note: implementation is slightly simpler compared to the
-	// original algorithm but in most use cases it gives identical
-	// results.)
-	if (!face) throw std::runtime_error("Must specify face.");
-	MEdgePtr edge = face->get_edge(ev0, ev1);
-	for (MEdge::Faces::const_iterator face_iter = edge->faces.begin();
-	        face_iter != edge->faces.end(); face_iter++) {
-		MFacePtr otherface = face_iter->lock();
-		// skip expired faces
-		// (lock() returns MFacePtr() on expired faces!)
-		if (!otherface) continue;
-		// skip given face
-		if (otherface == face) continue;
-		// return other face if it has different winding along the edge
-		if (face->get_vertex_winding(ev0, ev1) != otherface->get_vertex_winding(ev0, ev1))
-			return otherface;
-	};
-	return MFacePtr();
-}
 /*
 
 def _Counter():
@@ -100,7 +79,7 @@ def _xwrap(idx, maxlen):
 class TriangleStrip {
 public:
 	//Heavily adapted from NvTriStrip.
-	//Origional can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
+	//Original can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
 
 	std::list<MFacePtr> faces; // list because we need push_front
 	std::list<int> strip; // identical to faces, but written as a strip
@@ -188,7 +167,7 @@ public:
 	//! the given edge indices. Returns number of faces added.
 	int traverse_faces(int v0, int v1, bool forward) {
 		int count = 0;
-		MFacePtr next_face = find_other_face(v0, v1, start_face);
+		MFacePtr next_face = start_face->get_next_face(v0, v1);
 		while ((next_face) && (!is_face_marked(next_face))) {
 			// XXX the nvidia stripifier says the following:
 			// XXX
@@ -214,7 +193,7 @@ public:
 				strip.push_front(v1);
 			};
 			mark_face(next_face);
-			next_face = find_other_face(v0, v1, next_face);
+			next_face = next_face->get_next_face(v0, v1);
 			count++;
 		};
 		return count;

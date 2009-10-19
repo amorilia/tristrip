@@ -263,4 +263,26 @@ BOOST_AUTO_TEST_CASE(edge_get_next_face_test) {
 	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f3);
 }
 
+BOOST_AUTO_TEST_CASE(face_get_next_face_test_0) {
+	// single triangle mesh
+	Mesh m;
+	MFacePtr f = m.add_face(0, 1, 2);
+	BOOST_CHECK_EQUAL(f->get_next_face(0, 1), MFacePtr());
+}
+
+BOOST_AUTO_TEST_CASE(face_get_next_face_test_1) {
+	// construct slightly more complicated mesh
+	Mesh m;
+	MFacePtr f0 = m.add_face(0, 1, 2);
+	MFacePtr f1 = m.add_face(2, 1, 3);
+	MFacePtr f2 = m.add_face(2, 3, 4);
+	MFacePtr f3 = m.add_face(5, 3, 2);
+	MFacePtr f4 = m.add_face(2, 1, 9); // faces added earlier on get priority when the strip is built, this is to check for that
+	// check the function by doing a quick strip traversal
+	MFacePtr f = f0;
+	BOOST_CHECK_EQUAL(f0->get_next_face(1, 2), f1);
+	BOOST_CHECK_EQUAL(f1->get_next_face(2, 3), f2);
+	BOOST_CHECK_EQUAL(f2->get_next_face(3, 4), MFacePtr());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
