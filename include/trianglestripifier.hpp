@@ -262,6 +262,7 @@ typedef boost::shared_ptr<TriangleStrip> TriangleStripPtr;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class ExperimentGLSelector {
+public:
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Constants / Variables / Etc.
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -284,7 +285,7 @@ class ExperimentGLSelector {
 		int stripsize = 0;
 		for (std::list<TriangleStripPtr>::const_iterator strip = experiment.begin();
 		        strip != experiment.end(); strip++) {
-			stripsize += strip->faces.size();
+			stripsize += (*strip)->faces.size();
 		};
 		float score = strip_len_heuristic * stripsize / experiment.size();
 		if (score > best_score) {
@@ -293,12 +294,11 @@ class ExperimentGLSelector {
 		};
 	}
 
-	void clear(self) {
+	void clear() {
 		best_score = 0.0;
 		best_sample.clear();
 	}
 };
-/*
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ TriangleStripifier
@@ -306,13 +306,17 @@ class ExperimentGLSelector {
 
 //Heavily adapted from NvTriStrip.
 //Origional can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
-class TriangleStripifier(object):
+class TriangleStripifier {
 
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    //~ Constants / Variables / Etc.
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//~ Constants / Variables / Etc.
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    GLSelector = ExperimentGLSelector(3, 3)
+	static ExperimentGLSelector selector;
+
+};
+
+/*
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //~ Public Methods
@@ -489,3 +493,5 @@ class TriangleStripifier(object):
                 except AttributeError: pass
                 CleanFacesTask += 1
 */
+
+ExperimentGLSelector TriangleStripifier::selector(3, 0);
