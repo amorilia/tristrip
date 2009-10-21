@@ -52,6 +52,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <cassert>
 #include <boost/foreach.hpp>
+// XXX debug
+//#include <iostream> // XXX remove when done debugging
 
 #include "trianglemesh.hpp"
 
@@ -169,6 +171,8 @@ public:
 	//! Building face traversal list starting from the start_face and
 	//! the given edge indices. Returns number of faces added.
 	int traverse_faces(int v0, int v1, bool forward) {
+	  // XXX debug
+	  //std::cout << "traversing " << forward << " from " << v0 << "," << v1 << std::endl;
 		int count = 0;
 		MFacePtr next_face = start_face->get_next_face(v0, v1);
 		while ((next_face) && (!is_face_marked(next_face))) {
@@ -186,17 +190,21 @@ public:
 			// XXX this (rare) problem for now :-)
 			/* if not BreakTest(NextFace): break */
 			int v2 = next_face->get_other_vertex(v0, v1);
-			v0 = v1;
-			v1 = v2;
+			// XXX debug
+			//std::cout << forward << " traversing face " << v0 << "," << v1 << "," << v2 << std::endl;
 			if (forward) {
 				faces.push_back(next_face);
-				strip.push_back(v1);
+				strip.push_back(v2);
 			} else {
 				faces.push_front(next_face);
-				strip.push_front(v1);
+				strip.push_front(v2);
 			};
+			v0 = v1;
+			v1 = v2;
 			mark_face(next_face);
 			next_face = next_face->get_next_face(v0, v1);
+			// XXX debug
+			//if (!next_face) std::cout << "done" << std::endl;
 			count++;
 		};
 		return count;
