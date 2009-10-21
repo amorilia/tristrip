@@ -50,6 +50,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include <cassert>
 #include <boost/foreach.hpp>
 
 #include "trianglemesh.hpp"
@@ -86,7 +87,7 @@ public:
 	std::list<MFacePtr> faces; // list because we need push_front
 	std::list<int> strip; // identical to faces, but written as a strip
 	MFacePtr start_face;
-	int start_face_index;
+	std::list<MFacePtr>::const_iterator start_face_iter;
 	MEdgePtr start_edge;
 	int start_ev0; //! start_edge->ev0 or ev1 (determines direction of edge).
 	int start_ev1; //! start_edge->ev0 or ev1 (determines direction of edge).
@@ -102,7 +103,7 @@ public:
 
 	TriangleStrip(MFacePtr _start_face, MEdgePtr _start_edge,
 	              int _strip_id=-1, int _experiment_id=-1)
-			: faces(), start_face(_start_face), start_face_index(-1),
+			: faces(), start_face(_start_face), start_face_iter(),
 			start_edge(_start_edge) {
 		// pick first and second vertex according to the
 		// winding of start_face
@@ -215,13 +216,16 @@ public:
 		// mark start face and add it to faces and strip
 		mark_face(start_face);
 		faces.push_back(start_face);
+		start_face_iter = faces.begin();
 		strip.push_back(v0);
 		strip.push_back(v1);
 		strip.push_back(v2);
 		// while traversing backwards, start face gets shifted forward
 		// so we keep track of that (to get winding right in the end)
 		traverse_faces(v1, v2, true);
-		start_face_index = traverse_faces(v1, v0, false);
+		traverse_faces(v1, v0, false);
+		// XXX debug
+		assert(start_face == *start_face_iter);
 	};
 
 	void commit() {
@@ -369,42 +373,69 @@ public:
 		// We've exhausted all the faces... so lets exit this loop
 		start_face_iter = mesh->faces.end();
 	};
+
+	//! Looks for a face and edge to start new strip exactly at the
+	//! given face and edge. Returns true if one is found (otherface and
+	//! otheredge then have those where a new strip can start), returns
+	//! false if not (otheredge will be the edge of where to look next,
+	//! otherface ideally would be updated too but the implementation
+	//! currently doesn't do this...).
+	bool is_it_here(TriangleStripPtr strip,
+	                MFacePtr currentface, MEdgePtr currentedge,
+	                MFacePtr & otherface, MEdgePtr & otheredge) {
+		// Get the next vertex in this strips' walk
+		int v2 = currentface->get_other_vertex(currentedge->ev0, currentedge->ev1);
+		// Find the edge parallel to the strip, namely v0 to v2
+		MEdgePtr paralleledge = currentface->get_edge(currentedge->ev0, v2);
+		// Find the other face off the parallel edge
+		otherface = currentface->get_next_face(paralleledge->ev0, paralleledge->ev1);
+		if (otherface && !strip->has_face(otherface) && !strip->is_face_marked(otherface)) {
+			// If we can use it, then do it!
+			otheredge = otherface->get_edge(currentedge->ev0, otherface->get_other_vertex(paralleledge->ev0, paralleledge->ev1));
+			return true;
+		} else {
+			// Keep looking...
+			otheredge = currentface->get_edge(currentedge->ev1, v2);
+			// XXX would like to set otherface to the next face too...
+			// XXX but faces aren't linked in the strip so cannot do
+			return false;
+		};
+	}
+
+	//! Find a face and edge to start a new strip, parallel to a given strip.
+	void find_traversal(TriangleStripPtr strip,
+	                    MFacePtr & otherface, MEdgePtr & otheredge) {
+		// forward search
+		MEdgePtr currentedge = strip->start_edge;
+		MFacePtr currentface; // = strip->start_face; // XXX set below
+		for (std::list<MFacePtr>::const_iterator iter = strip->start_face_iter;
+		        iter != strip->faces.end(); iter++) {
+			currentface = *iter;
+			if (is_it_here(strip, currentface, currentedge,
+			               otherface, otheredge))
+				return;
+			currentedge = otheredge;
+			// XXX otherface not updated, otherwise would do "currentface = otherface"
+		};
+		// backward search
+		currentedge = strip->start_edge;
+		for (std::list<MFacePtr>::const_iterator iter = strip->start_face_iter;
+		        iter != strip->faces.begin();) {
+			currentface = *(--iter);
+			if (is_it_here(strip, currentface, currentedge,
+			               otherface, otheredge))
+				return;
+			currentedge = otheredge;
+			// XXX otherface not updated, otherwise would do "currentface = otherface"
+		};
+		// nothing found
+		otherface = MFacePtr();
+		otheredge = MEdgePtr();
+	}
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 };
 /*
-
-    def _FindTraversal(self, strip):
-        mesh = strip.StartFace.mesh
-        FaceList = strip.Faces
-        def _IsItHere(idx, currentedge):
-            face = FaceList[idx]
-            // Get the next vertex in this strips' walk
-            v2 = face.OtherVertex(*currentedge)
-            // Find the edge parallel to the strip, namely v0 to v2
-            paralleledge = mesh.GetEdge(currentedge[0], v2)
-            // Find the other face off the parallel edge
-            otherface = paralleledge.NextFace(face)
-            if otherface and not strip.FaceInStrip(otherface) and not strip.IsFaceMarked(otherface):
-                // If we can use it, then do it!
-                otheredge = mesh.GetEdge(currentedge[0], otherface.OtherVertex(*paralleledge.ev))
-                // TODO: See if we are getting the proper windings.  Otherwise toy with the following
-                return otherface, otheredge, (otheredge.ev[0] == currentedge[0]) and 1 or 0
-            else:
-                // Keep looking...
-                currentedge[:] = [currentedge[1], v2]
-
-        startindex = strip.StartFaceIndex
-        currentedge = list(strip.StartEdgeOrder[:])
-        for idx in xrange(startindex, len(FaceList), 1):
-            result = _IsItHere(idx, currentedge)
-            if result is not None: return result
-
-        currentedge = list(strip.StartEdgeOrder[:])
-        currentedge.reverse()
-        for idx in xrange(startindex-1, -1, -1):
-            result = _IsItHere(idx, currentedge)
-            if result is not None: return result
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   std::list<TriangleStripPtr> find_all_strips() {};
     def _FindAllStrips(self, mesh, TaskProgress=None):
