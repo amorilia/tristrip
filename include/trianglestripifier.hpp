@@ -238,6 +238,7 @@ public:
 
 	void commit() {
 		experiment_id = -1;
+		BOOST_FOREACH(MFacePtr face, faces) mark_face(face);
 	};
 
 	// Note: TriangleListIndices is too trivial to be of interest, and
@@ -313,7 +314,7 @@ public:
 	//~ Public Methods
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	TriangleStripifier(MeshPtr _mesh) : mesh(_mesh), start_face_iter(_mesh->faces.begin()) {};
+	TriangleStripifier(MeshPtr _mesh) : mesh(_mesh), start_face_iter(_mesh->faces.end()) {};
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Protected Methods
@@ -351,12 +352,15 @@ public:
 		start_face_iter = bestface;
 	};
 
-	//! Find a good face to start stripification, after some
-	//! strips have already been created. Result is stored in
-	//! start_face_iter.
-	//! Will store mesh->faces.end() when no more faces are left.
-	//! XXX Assumes that find_start_face has already been called.
-	void find_good_reset_point() {
+	//! Find a good face to start stripification, potentially
+	//! after some strips have already been created. Result is
+	//! stored in start_face_iter. Will store mesh->faces.end()
+	//! when no more faces are left.
+	bool find_good_reset_point() {
+		if (start_face_iter == mesh->faces.end()) {
+			return (find_start_face() != mesh->faces.end());
+		};
+
 		int start_step = mesh->faces.size() / 10;
 		// XXX this is crap: map iterators only do ++
 
@@ -372,7 +376,7 @@ public:
 			if (face->second->strip_id == -1) {
 				// face not used in any strip, so start there for next strip
 				start_face_iter = face;
-				return;
+				return true;
 			};
 			face++;
 			if (face == mesh->faces.end())
@@ -380,6 +384,7 @@ public:
 		} while (face != start_face_iter);
 		// We've exhausted all the faces... so lets exit this loop
 		start_face_iter = mesh->faces.end();
+		return false;
 	};
 
 	//! Looks for a face and vertex to start new strip exactly at the
@@ -455,79 +460,71 @@ public:
 		// nothing found
 		return false;
 	}
+
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+	std::list<TriangleStripPtr> find_all_strips() {
+		std::list<TriangleStripPtr> all_strips;
+		int experiment_id = 1;
+		int strip_id = 1;
+
+		while (true) {
+			// note: one experiment is a collection of adjacent strips
+			std::list<std::list<TriangleStripPtr> > experiments;
+			//std::set<MFacePtr> visited_reset_points;
+			for (int n_sample = 0; n_sample < selector.num_samples; n_sample++) {
+				// Get a good start face for an experiment
+				find_good_reset_point();
+				MFacePtr exp_face = start_face_iter->second;
+				// XXX do we need to check this?
+				/*
+				    if ExpFace in VisitedResetPoints:
+				        // We've seen this face already... try again
+				        continue
+				    VisitedResetPoints[ExpFace] = 1
+				*/
+				// Create an exploration from ExpFace in each of the three directions
+				int vertices[] = {exp_face->v0, exp_face->v1, exp_face->v2};
+				BOOST_FOREACH(int exp_vertex, vertices) {
+					// Create the seed strip for the experiment
+					TriangleStripPtr si_seed(new TriangleStrip(exp_face, exp_vertex, strip_id++, experiment_id++));
+					// Add the seeded experiment list to the experiment collection
+					std::list<TriangleStripPtr> exp;
+					exp.push_back(si_seed);
+					experiments.push_back(exp);
+				}
+			}
+			while (!experiments.empty()) {
+				std::list<TriangleStripPtr> exp = experiments.back();
+				experiments.pop_back(); // no reason to keep in this list
+				while (true) {
+					// Build the the last face of the experiment
+					exp.back()->build();
+					// See if there is a connecting face that we can move to
+					MFacePtr otherface;
+					int othervertex;
+					if (find_traversal(exp.back(), otherface, othervertex)) {
+						// if so, add it to the list
+						exp.push_back(TriangleStripPtr(new TriangleStrip(otherface, othervertex, strip_id++, exp.back()->experiment_id)));
+					} else {
+						// Otherwise, we're done
+						break;
+					}
+				}
+				selector.update_score(exp);
+			};
+			// Get the best experiment according to the selector
+			std::list<TriangleStripPtr> best_experiment = selector.best_sample; // XXX make copy!
+			selector.clear();
+			// And commit it to the resultset
+			BOOST_FOREACH(TriangleStripPtr strip, best_experiment) {
+				strip->commit();
+				all_strips.push_back(strip);
+			}
+			best_experiment.clear();
+		}
+		return all_strips;
+	}
 };
-/*
-
-  std::list<TriangleStripPtr> find_all_strips() {};
-    def _FindAllStrips(self, mesh, TaskProgress=None):
-        selector = self.GLSelector
-        bCleanFaces = getattr(mesh, 'CleanFaces', 0)
-        GoodResetPoints = self._FindGoodResetPoint(mesh)
-        experimentId = _Counter()
-        stripId = _Counter()
-
-        StripifyTask = 0
-        CleanFacesTask = 0
-        if TaskProgress:
-            StripifyTask = TaskProgress.NewSubtask("Triangle mesh stripification", 0, len(mesh.Faces))
-            if bCleanFaces:
-                CleanFacesTask = TaskProgress.NewSubtask("Clean faces", 0, len(mesh.Faces))
-
-        try:
-            while 1:
-                Experiments = []
-                VisitedResetPoints = {}
-
-                for nSample in xrange(selector.Samples):
-                    // Get a good start face for an experiment
-                    ExpFace = GoodResetPoints.next()
-                    if ExpFace in VisitedResetPoints:
-                        // We've seen this face already... try again
-                        continue
-                    VisitedResetPoints[ExpFace] = 1
-
-                    // Create an exploration from ExpFace in each of the three edge directions
-                    for ExpEdge in ExpFace.edges:
-                        // See if the edge is pointing in the direction we expect
-                        flag = ExpFace.GetVertexWinding(*ExpEdge.ev)
-                        // Create the seed strip for the experiment
-                        siSeed = TriangleStrip(ExpFace, ExpEdge, flag, stripId.next(), experimentId.next())
-                        // Add the seeded experiment list to the experiment collection
-                        Experiments.append([siSeed])
-
-                while Experiments:
-                    exp = Experiments.pop()
-                    while 1:
-                        // Build the the last face of the experiment
-                        exp[-1].Build()
-                        // See if there is a connecting face that we can move to
-                        traversal = self._FindTraversal(exp[-1])
-                        if traversal:
-                            // if so, add it to the list
-                            traversal += (stripId.next(), exp[0].ExperimentId)
-                            exp.append(TriangleStrip(*traversal))
-                        else:
-                            // Otherwise, we're done
-                            break
-                    selector.Score(exp)
-
-                // Get the best experiment according to the selector
-                BestExperiment = selector.best_sample // XXX make copy!
-		selector.clear()
-                // And commit it to the resultset
-                for each in BestExperiment:
-                    yield each.Commit(StripifyTask)
-                del BestExperiment
-        except StopIteration:
-            pass
-
-        if bCleanFaces:
-            for face in mesh.Faces:
-                try: del face.StripId
-                except AttributeError: pass
-                CleanFacesTask += 1
-*/
 
 ExperimentSelector TriangleStripifier::selector(3, 0);
