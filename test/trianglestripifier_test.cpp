@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(strip_build) {
 	MFacePtr f3 = m->add_face(8, 0, 10); // in strip
 	BOOST_CHECK_EQUAL(f2->get_next_face(0, 8), f3);
 	TriangleStripifier t(m);
-	TriangleStrip s(f1, f1->get_edge(0, 1), 1);
+	TriangleStrip s(f1, 0, 1);
 	s.build();
 	std::list<int>::const_iterator i = s.strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 10);
@@ -128,6 +128,65 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_start_face) {
 	t.find_start_face();
 	t.start_face_iter->second->dump();
 	BOOST_CHECK_EQUAL(t.start_face_iter->second, f);
+}
+
+BOOST_AUTO_TEST_CASE(triangle_stripifier_find_traversal) {
+	MeshPtr m(new Mesh());
+
+	// first strip
+
+	m->add_face(2, 1, 7); // in strip
+	MFacePtr s1_face = m->add_face(0, 1, 2); // in strip
+	m->add_face(2, 7, 4); // in strip
+	m->add_face(4, 7, 11); // in strip
+	m->add_face(5, 3, 2);
+	m->add_face(1, 0, 8); // in strip
+	m->add_face(0, 8, 9); // bad orientation!
+	m->add_face(8, 0, 10); // in strip
+
+	// parallel strip
+	MFacePtr s2_face = m->add_face(0, 2, 21); // in strip
+	m->add_face(21, 2, 22); // in strip
+	m->add_face(2, 4, 22); // in strip
+	m->add_face(21, 24, 0); // in strip
+	m->add_face(9, 0, 24); // in strip
+
+	// build strip
+	TriangleStripifier t(m);
+	TriangleStripPtr s1(new TriangleStrip(s1_face, 0, 1));
+	s1->build();
+	std::list<int>::const_iterator i = s1->strip.begin();
+
+	// ... extra check, could omit this
+	BOOST_CHECK_EQUAL(*i++, 10);
+	BOOST_CHECK_EQUAL(*i++, 8);
+	BOOST_CHECK_EQUAL(*i++, 0);
+	BOOST_CHECK_EQUAL(*i++, 1);
+	BOOST_CHECK_EQUAL(*i++, 2);
+	BOOST_CHECK_EQUAL(*i++, 7);
+	BOOST_CHECK_EQUAL(*i++, 4);
+	BOOST_CHECK_EQUAL(*i++, 11);
+	BOOST_CHECK(i == s1->strip.end());
+
+	// check traversal finding
+	MFacePtr f;
+	int v;
+	BOOST_CHECK_EQUAL(t.find_traversal(s1, f, v), true);
+	BOOST_CHECK_EQUAL(f, s2_face);
+	BOOST_CHECK_EQUAL(v, 2);
+
+	// check parallel strip
+	TriangleStripPtr s2(new TriangleStrip(f, v, 2));
+	s2->build();
+	i = s2->strip.begin();
+	BOOST_CHECK_EQUAL(*i++, 4);
+	BOOST_CHECK_EQUAL(*i++, 22);
+	BOOST_CHECK_EQUAL(*i++, 2);
+	BOOST_CHECK_EQUAL(*i++, 21);
+	BOOST_CHECK_EQUAL(*i++, 0);
+	BOOST_CHECK_EQUAL(*i++, 24);
+	BOOST_CHECK_EQUAL(*i++, 9);
+	BOOST_CHECK(i == s2->strip.end());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

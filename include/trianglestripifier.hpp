@@ -95,9 +95,7 @@ public:
 	std::list<int> strip; // identical to faces, but written as a strip
 	MFacePtr start_face;
 	std::list<MFacePtr>::const_iterator start_face_iter;
-	MEdgePtr start_edge;
-	int start_ev0; //! start_edge->ev0 or ev1 (determines direction of edge).
-	int start_ev1; //! start_edge->ev0 or ev1 (determines direction of edge).
+	int start_vertex; // determines direction of strip
 	int experiment_id;
 	int strip_id;
 
@@ -108,19 +106,10 @@ public:
 	//~ Public Methods
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	TriangleStrip(MFacePtr _start_face, MEdgePtr _start_edge,
+	TriangleStrip(MFacePtr _start_face, int _start_vertex,
 	              int _strip_id=-1, int _experiment_id=-1)
 			: faces(), start_face(_start_face), start_face_iter(),
-			start_edge(_start_edge) {
-		// pick first and second vertex according to the
-		// winding of start_face
-		if (start_face->get_vertex_winding(start_edge->ev0, start_edge->ev1) == 0) {
-			start_ev0 = start_edge->ev0;
-			start_ev1 = start_edge->ev1;
-		} else {
-			start_ev0 = start_edge->ev1;
-			start_ev1 = start_edge->ev0;
-		};
+			start_vertex(_start_vertex) {
 		if (_strip_id != -1) {
 			strip_id = _strip_id;
 		} else {
@@ -229,9 +218,9 @@ public:
 		faces.clear();
 		strip.clear();
 		// find start indices
-		int v0 = start_ev0;
-		int v1 = start_ev1;
-		int v2 = start_face->get_other_vertex(v0, v1);
+		int v0 = start_vertex;
+		int v1 = start_face->get_next_vertex(v0);
+		int v2 = start_face->get_next_vertex(v1);
 		// mark start face and add it to faces and strip
 		mark_face(start_face);
 		faces.push_back(start_face);
@@ -400,21 +389,22 @@ public:
 	//! otherface ideally would be updated too but the implementation
 	//! currently doesn't do this...).
 	bool is_it_here(TriangleStripPtr strip,
-	                MFacePtr currentface, MEdgePtr currentedge,
-	                MFacePtr & otherface, MEdgePtr & otheredge) {
+	                MFacePtr currentface, int currentvertex,
+	                MFacePtr & otherface, int & othervertex) {
 		// Get the next vertex in this strips' walk
-		int v2 = currentface->get_other_vertex(currentedge->ev0, currentedge->ev1);
-		// Find the edge parallel to the strip, namely v0 to v2
-		MEdgePtr paralleledge = currentface->get_edge(currentedge->ev0, v2);
+		int v0 = currentvertex;
+		int v1 = currentface->get_next_vertex(v0);
+		int v2 = currentface->get_next_vertex(v1);
+		// Edge parallel to the strip is v0 to v2
 		// Find the other face off the parallel edge
-		otherface = currentface->get_next_face(paralleledge->ev0, paralleledge->ev1);
+		otherface = currentface->get_next_face(v0, v2);
 		if (otherface && !strip->has_face(otherface) && !strip->is_face_marked(otherface)) {
 			// If we can use it, then do it!
-			otheredge = otherface->get_edge(currentedge->ev0, otherface->get_other_vertex(paralleledge->ev0, paralleledge->ev1));
+			othervertex = v2;
 			return true;
 		} else {
 			// Keep looking...
-			otheredge = currentface->get_edge(currentedge->ev1, v2);
+			othervertex = v1;
 			// XXX would like to set otherface to the next face too...
 			// XXX but faces aren't linked in the strip so cannot do
 			return false;
@@ -422,34 +412,33 @@ public:
 	}
 
 	//! Find a face and edge to start a new strip, parallel to a given strip.
-	void find_traversal(TriangleStripPtr strip,
-	                    MFacePtr & otherface, MEdgePtr & otheredge) {
+	bool find_traversal(TriangleStripPtr strip,
+	                    MFacePtr & otherface, int & othervertex) {
 		// forward search
-		MEdgePtr currentedge = strip->start_edge;
+		int currentvertex = strip->start_vertex;
 		MFacePtr currentface; // = strip->start_face; // XXX set below
 		for (std::list<MFacePtr>::const_iterator iter = strip->start_face_iter;
 		        iter != strip->faces.end(); iter++) {
 			currentface = *iter;
-			if (is_it_here(strip, currentface, currentedge,
-			               otherface, otheredge))
-				return;
-			currentedge = otheredge;
+			if (is_it_here(strip, currentface, currentvertex,
+			               otherface, othervertex))
+				return true;
+			currentvertex = othervertex;
 			// XXX otherface not updated, otherwise would do "currentface = otherface"
 		};
 		// backward search
-		currentedge = strip->start_edge;
+		currentvertex = strip->start_vertex;
 		for (std::list<MFacePtr>::const_iterator iter = strip->start_face_iter;
 		        iter != strip->faces.begin();) {
 			currentface = *(--iter);
-			if (is_it_here(strip, currentface, currentedge,
-			               otherface, otheredge))
-				return;
-			currentedge = otheredge;
+			if (is_it_here(strip, currentface, currentvertex,
+			               otherface, othervertex))
+				return true;
+			currentvertex = othervertex;
 			// XXX otherface not updated, otherwise would do "currentface = otherface"
 		};
 		// nothing found
-		otherface = MFacePtr();
-		otheredge = MEdgePtr();
+		return false;
 	}
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

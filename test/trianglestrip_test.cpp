@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test) {
 	MFacePtr f2 = m.add_face(2, 7, 4);
 	MFacePtr f3 = m.add_face(5, 3, 2);
 	MFacePtr f4 = m.add_face(2, 1, 9);
-	TriangleStrip t(f1, f1->get_edge(7, 2));
+	TriangleStrip t(f1, 7);
 	t.build();
 	std::list<int>::const_iterator i = t.strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 4);
