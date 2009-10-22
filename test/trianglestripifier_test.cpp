@@ -143,6 +143,7 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_traversal) {
 	m->add_face(1, 0, 8); // in strip
 	m->add_face(0, 8, 9); // bad orientation!
 	m->add_face(8, 0, 10); // in strip
+	m->add_face(10, 11, 8); // in strip
 
 	// parallel strip
 	MFacePtr s2_face = m->add_face(0, 2, 21); // in strip
@@ -151,6 +152,11 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_traversal) {
 	m->add_face(21, 24, 0); // in strip
 	m->add_face(9, 0, 24); // in strip
 
+	// parallel strip, further down
+	MFacePtr s3_face = m->add_face(8, 11, 31); // in strip
+	m->add_face(8, 31, 32); // in strip
+	m->add_face(31, 11, 33); // in strip
+
 	// build strip
 	TriangleStripifier t(m);
 	TriangleStripPtr s1(new TriangleStrip(s1_face, 0, 1));
@@ -158,6 +164,7 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_traversal) {
 	std::list<int>::const_iterator i = s1->strip.begin();
 
 	// ... extra check, could omit this
+	BOOST_CHECK_EQUAL(*i++, 11);
 	BOOST_CHECK_EQUAL(*i++, 10);
 	BOOST_CHECK_EQUAL(*i++, 8);
 	BOOST_CHECK_EQUAL(*i++, 0);
@@ -187,6 +194,20 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_traversal) {
 	BOOST_CHECK_EQUAL(*i++, 24);
 	BOOST_CHECK_EQUAL(*i++, 9);
 	BOOST_CHECK(i == s2->strip.end());
+
+	// find remaining traversal
+	BOOST_CHECK_EQUAL(t.find_traversal(s1, f, v), true);
+
+	// check parallel strip
+	TriangleStripPtr s3(new TriangleStrip(f, v, 3));
+	s3->build();
+	i = s3->strip.begin();
+	BOOST_CHECK_EQUAL(*i++, 33);
+	BOOST_CHECK_EQUAL(*i++, 11);
+	BOOST_CHECK_EQUAL(*i++, 31);
+	BOOST_CHECK_EQUAL(*i++, 8);
+	BOOST_CHECK_EQUAL(*i++, 32);
+	BOOST_CHECK(i == s3->strip.end());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

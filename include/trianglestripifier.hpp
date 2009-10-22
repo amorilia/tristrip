@@ -382,25 +382,34 @@ public:
 		start_face_iter = mesh->faces.end();
 	};
 
-	//! Looks for a face and edge to start new strip exactly at the
-	//! given face and edge. Returns true if one is found (otherface and
+	//! Looks for a face and vertex to start new strip exactly at the
+	//! given face in the strip. Returns true if one is found (otherface and
 	//! otheredge then have those where a new strip can start), returns
 	//! false if not (otheredge will be the edge of where to look next,
 	//! otherface ideally would be updated too but the implementation
 	//! currently doesn't do this...).
 	bool is_it_here(TriangleStripPtr strip,
-	                MFacePtr currentface, int currentvertex,
+	                MFacePtr currentface, int currentvertex, bool is_even_face,
 	                MFacePtr & otherface, int & othervertex) {
-		// Get the next vertex in this strips' walk
-		int v0 = currentvertex;
-		int v1 = currentface->get_next_vertex(v0);
-		int v2 = currentface->get_next_vertex(v1);
-		// Edge parallel to the strip is v0 to v2
+		// Get the next vertices in this strip's walk
+		int v0 = currentvertex, v1, v2;
+		if (is_even_face) {
+			v1 = currentface->get_next_vertex(v0);
+			v2 = currentface->get_next_vertex(v1);
+		} else {
+			v2 = currentface->get_next_vertex(v0);
+			v1 = currentface->get_next_vertex(v2);
+		};
 		// Find the other face off the parallel edge
+		// Edge parallel to the strip is v0 to v2
 		otherface = currentface->get_next_face(v0, v2);
 		if (otherface && !strip->has_face(otherface) && !strip->is_face_marked(otherface)) {
 			// If we can use it, then do it!
-			othervertex = v2;
+			if (is_even_face) {
+				othervertex = v2;
+			} else {
+				othervertex = v0;
+			};
 			return true;
 		} else {
 			// Keep looking...
@@ -415,26 +424,32 @@ public:
 	bool find_traversal(TriangleStripPtr strip,
 	                    MFacePtr & otherface, int & othervertex) {
 		// forward search
+		// v0 v1 v2 ...
 		int currentvertex = strip->start_vertex;
+		bool is_even_face = true;
 		MFacePtr currentface; // = strip->start_face; // XXX set below
 		for (std::list<MFacePtr>::const_iterator iter = strip->start_face_iter;
 		        iter != strip->faces.end(); iter++) {
 			currentface = *iter;
-			if (is_it_here(strip, currentface, currentvertex,
+			if (is_it_here(strip, currentface, currentvertex, is_even_face,
 			               otherface, othervertex))
 				return true;
 			currentvertex = othervertex;
+			is_even_face = !is_even_face;
 			// XXX otherface not updated, otherwise would do "currentface = otherface"
 		};
 		// backward search
-		currentvertex = strip->start_vertex;
+		// v1 v0 ...
+		is_even_face = true;
+		currentvertex = strip->start_face->get_next_vertex(strip->start_vertex);
 		for (std::list<MFacePtr>::const_iterator iter = strip->start_face_iter;
 		        iter != strip->faces.begin();) {
 			currentface = *(--iter);
-			if (is_it_here(strip, currentface, currentvertex,
+			if (is_it_here(strip, currentface, currentvertex, is_even_face,
 			               otherface, othervertex))
 				return true;
 			currentvertex = othervertex;
+			is_even_face = !is_even_face;
 			// XXX otherface not updated, otherwise would do "currentface = otherface"
 		};
 		// nothing found
