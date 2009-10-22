@@ -89,6 +89,8 @@ Edge::Edge(int _ev0, int _ev1) {
 
 bool Edge::operator<(const Edge & otheredge) const {
 	if (ev0 < otheredge.ev0) return true;
+	if (ev0 > otheredge.ev0) return false;
+	// ev0 == otheredge.ev0, so use ev1 for comparing
 	if (ev1 < otheredge.ev1) return true;
 	return false;
 };
@@ -158,7 +160,9 @@ Face::Face(int _v0, int _v1, int _v2) {
 
 bool Face::operator<(const Face & otherface) const {
 	if (v0 < otherface.v0) return true;
+	if (v0 > otherface.v0) return false;
 	if (v1 < otherface.v1) return true;
+	if (v1 > otherface.v1) return false;
 	if (v2 < otherface.v2) return true;
 	return false;
 };
@@ -261,9 +265,9 @@ MFacePtr MFace::get_next_face(int ev0, int ev1) {
 
 void MFace::dump() {
 	std::cout << "  face " << v0 << "," << v1 << "," << v2 << std::endl;
-	std::cout << "    edge 0 " << edges[0]->ev0 << "," << edges[0]->ev1 << std::endl;
-	std::cout << "    edge 1 " << edges[1]->ev0 << "," << edges[1]->ev1 << std::endl;
-	std::cout << "    edge 2 " << edges[2]->ev0 << "," << edges[2]->ev1 << std::endl;
+	std::cout << "    edge " << edges[0]->ev0 << "," << edges[0]->ev1 << std::endl;
+	std::cout << "    edge " << edges[1]->ev0 << "," << edges[1]->ev1 << std::endl;
+	std::cout << "    edge " << edges[2]->ev0 << "," << edges[2]->ev1 << std::endl;
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
