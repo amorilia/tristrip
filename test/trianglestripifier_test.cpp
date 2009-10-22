@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(strip_build) {
 	TriangleStrip s(f1, f1->get_edge(0, 1), 1);
 	s.build();
 	std::list<int>::const_iterator i = s.strip.begin();
-	//BOOST_CHECK_EQUAL(*i++, 4); // not picked up??? bug!
+	BOOST_CHECK_EQUAL(*i++, 10);
 	BOOST_CHECK_EQUAL(*i++, 8);
 	BOOST_CHECK_EQUAL(*i++, 0);
 	BOOST_CHECK_EQUAL(*i++, 1);
