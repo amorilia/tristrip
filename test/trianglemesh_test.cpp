@@ -287,11 +287,11 @@ BOOST_AUTO_TEST_CASE(face_get_next_face_test_1) {
 
 BOOST_AUTO_TEST_CASE(face_get_next_face_test_2) {
 	MeshPtr m(new Mesh());
-	m->add_face(5, 3, 2);
+	MFacePtr f1 = m->add_face(5, 3, 2);
 	MFacePtr f2 = m->add_face(1, 0, 8);
-	m->add_face(0, 8, 9); // bad orientation!
-	MFacePtr f3 = m->add_face(8, 0, 10);
-	BOOST_CHECK_EQUAL(f2->get_next_face(0, 8), f3);
+	MFacePtr f3 = m->add_face(0, 8, 9); // bad orientation!
+	MFacePtr f4 = m->add_face(8, 0, 10);
+	BOOST_CHECK_EQUAL(f2->get_next_face(0, 8), f4);
 }
 
 BOOST_AUTO_TEST_CASE(mesh_edgemap_test) {

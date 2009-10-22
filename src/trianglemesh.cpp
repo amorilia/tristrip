@@ -62,7 +62,10 @@ POSSIBILITY OF SUCH DAMAGE.
 //~ Imports
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#include <iostream> // for dump
 #include <stdexcept>
+
+#include <boost/foreach.hpp>
 
 #include "trianglemesh.hpp"
 
@@ -121,6 +124,13 @@ MFacePtr MEdge::get_next_face(Faces::const_iterator & face_iter) const {
 	// return result to new pointer
 	return MFacePtr(*face_iter);
 };
+
+void MEdge::dump() {
+	std::cout << "  edge " << ev0 << "," << ev1 << std::endl;
+	BOOST_FOREACH(boost::weak_ptr<MFace> face, faces) {
+		std::cout << "    face " << face.lock()->v0 << "," << face.lock()->v1 << "," << face.lock()->v2 << std::endl;
+	};
+}
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -249,6 +259,13 @@ MFacePtr MFace::get_next_face(int ev0, int ev1) {
 	return MFacePtr();
 }
 
+void MFace::dump() {
+	std::cout << "  face " << v0 << "," << v1 << "," << v2 << std::endl;
+	std::cout << "    edge 0 " << edges[0]->ev0 << "," << edges[0]->ev1 << std::endl;
+	std::cout << "    edge 1 " << edges[1]->ev0 << "," << edges[1]->ev1 << std::endl;
+	std::cout << "    edge 2 " << edges[2]->ev0 << "," << edges[2]->ev1 << std::endl;
+}
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MEdgePtr Mesh::add_edge(int ev0, int ev1) {
@@ -294,5 +311,16 @@ MFacePtr Mesh::add_face(int v0, int v1, int v2) {
 		edge12->faces.push_back(face);
 		edge20->faces.push_back(face);
 		return face;
+	};
+}
+
+void Mesh::dump() {
+	std::cout << faces.size() << " faces" << std::endl;
+	BOOST_FOREACH(FaceMap::value_type face, faces) {
+		face.second->dump();
+	};
+	std::cout << edges.size() << " edges" << std::endl;
+	BOOST_FOREACH(EdgeMap::value_type edge, edges) {
+		edge.second.lock()->dump();
 	};
 }

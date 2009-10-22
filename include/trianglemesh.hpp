@@ -106,6 +106,9 @@ public:
 	//! Get next face (keeps eternally looping, and advances face_iter).
 	//! If there is only a single face, then returns MFacePtr()
 	MFacePtr get_next_face(Faces::const_iterator & face_iter) const;
+
+	//! Dump to std::cout (e.g. for debugging).
+	void dump();
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -161,6 +164,9 @@ public:
 	//! Find another face, also adjacent to edge, with different
 	//! edge windings.
 	MFacePtr get_next_face(int ev0, int ev1);
+
+	//! Dump to std::cout (e.g. for debugging).
+	void dump();
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -188,6 +194,9 @@ public:
 
 	//! Create new face for mesh, or return existing face.
 	MFacePtr add_face(int v0, int v1, int v2);
+
+	//! Dump to std::cout (e.g. for debugging).
+	void dump();
 };
 
 typedef boost::shared_ptr<Mesh> MeshPtr;

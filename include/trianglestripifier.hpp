@@ -50,12 +50,17 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#define DEBUG 1 // XXX remove when done debugging
+
 #include <cassert>
 #include <boost/foreach.hpp>
-// XXX debug
-//#include <iostream> // XXX remove when done debugging
 
 #include "trianglemesh.hpp"
+
+#ifdef DEBUG
+// XXX debug
+#include <iostream> // XXX remove when done debugging
+#endif
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ Definitions
@@ -171,8 +176,10 @@ public:
 	//! Building face traversal list starting from the start_face and
 	//! the given edge indices. Returns number of faces added.
 	int traverse_faces(int v0, int v1, bool forward) {
-	  // XXX debug
-	  //std::cout << "traversing " << forward << " from " << v0 << "," << v1 << std::endl;
+#ifdef DEBUG
+		// XXX debug
+		std::cout << "traversing " << forward << " from " << v0 << "," << v1 << std::endl;
+#endif
 		int count = 0;
 		MFacePtr next_face = start_face->get_next_face(v0, v1);
 		while ((next_face) && (!is_face_marked(next_face))) {
@@ -190,8 +197,11 @@ public:
 			// XXX this (rare) problem for now :-)
 			/* if not BreakTest(NextFace): break */
 			int v2 = next_face->get_other_vertex(v0, v1);
+#ifdef DEBUG
 			// XXX debug
-			//std::cout << forward << " traversing face " << v0 << "," << v1 << "," << v2 << std::endl;
+			std::cout << " at edge " << v0 << "," << v1 << std::endl;
+			std::cout << " traversing face " << next_face->v0 << "," << next_face->v1 << "," << next_face->v2 << std::endl;
+#endif
 			if (forward) {
 				faces.push_back(next_face);
 				strip.push_back(v2);
@@ -201,10 +211,11 @@ public:
 			};
 			v0 = v1;
 			v1 = v2;
+#ifdef DEBUG
+			std::cout << " next edge " << v0 << "," << v1 << std::endl;
+#endif
 			mark_face(next_face);
 			next_face = next_face->get_next_face(v0, v1);
-			// XXX debug
-			//if (!next_face) std::cout << "done" << std::endl;
 			count++;
 		};
 		return count;

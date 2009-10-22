@@ -89,11 +89,15 @@ BOOST_AUTO_TEST_CASE(find_start_face_good_reset_point_test) {
 
 BOOST_AUTO_TEST_CASE(strip_build) {
 	MeshPtr m(new Mesh());
-	MFacePtr f0 = m->add_face(2, 1, 7);
-	MFacePtr f1 = m->add_face(0, 1, 2);
-	MFacePtr f2 = m->add_face(2, 7, 4);
-	MFacePtr f3 = m->add_face(5, 3, 2);
-	MFacePtr f4 = m->add_face(1, 0, 8);
+	m->add_face(2, 1, 7); // in strip
+	MFacePtr f1 = m->add_face(0, 1, 2); // in strip
+	m->add_face(2, 7, 4); // in strip
+	m->add_face(4, 7, 11); // in strip
+	m->add_face(5, 3, 2);
+	MFacePtr f2 = m->add_face(1, 0, 8); // in strip
+	m->add_face(0, 8, 9); // bad orientation!
+	MFacePtr f3 = m->add_face(8, 0, 10); // in strip
+	BOOST_CHECK_EQUAL(f2->get_next_face(0, 8), f3);
 	TriangleStripifier t(m);
 	TriangleStrip s(f1, f1->get_edge(0, 1), 1);
 	s.build();
@@ -105,6 +109,7 @@ BOOST_AUTO_TEST_CASE(strip_build) {
 	BOOST_CHECK_EQUAL(*i++, 2);
 	BOOST_CHECK_EQUAL(*i++, 7);
 	BOOST_CHECK_EQUAL(*i++, 4);
+	BOOST_CHECK_EQUAL(*i++, 11);
 	BOOST_CHECK(i == s.strip.end());
 }
 
