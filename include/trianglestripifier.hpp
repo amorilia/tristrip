@@ -477,7 +477,7 @@ public:
 				// Get a good start face for an experiment
 				if (!find_good_reset_point()) {
 					// done!
-					break;
+					return all_strips;
 				};
 				MFacePtr exp_face = start_face_iter->second;
 				// XXX do we need to check this?
@@ -526,7 +526,6 @@ public:
 			}
 			best_experiment.clear();
 		}
-		return all_strips;
 	}
 };
 
