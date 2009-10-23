@@ -477,7 +477,7 @@ public:
 				// Get a good start face for an experiment
 				if (!find_good_reset_point()) {
 					// done!
-					return all_strips;
+					break;
 				};
 				MFacePtr exp_face = start_face_iter->second;
 				// XXX do we need to check this?
@@ -497,6 +497,10 @@ public:
 					experiments.push_back(exp);
 				}
 			}
+			if (experiments.empty()) {
+				// no more experiments to run: done!!
+				return all_strips;
+			};
 			while (!experiments.empty()) {
 				std::list<TriangleStripPtr> exp = experiments.back();
 				experiments.pop_back(); // no reason to keep in this list
