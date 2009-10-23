@@ -53,6 +53,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define DEBUG 1 // XXX remove when done debugging
 
 #include <cassert>
+#include <set>
 #include <boost/foreach.hpp>
 
 #include "trianglemesh.hpp"
@@ -471,18 +472,20 @@ public:
 		while (true) {
 			// note: one experiment is a collection of adjacent strips
 			std::list<std::list<TriangleStripPtr> > experiments;
-			//std::set<MFacePtr> visited_reset_points;
+			std::set<Face> visited_reset_points;
 			for (int n_sample = 0; n_sample < selector.num_samples; n_sample++) {
 				// Get a good start face for an experiment
-				find_good_reset_point();
+				if (!find_good_reset_point()) {
+					// done!
+					break;
+				};
 				MFacePtr exp_face = start_face_iter->second;
 				// XXX do we need to check this?
-				/*
-				    if ExpFace in VisitedResetPoints:
-				        // We've seen this face already... try again
-				        continue
-				    VisitedResetPoints[ExpFace] = 1
-				*/
+				if (visited_reset_points.find(start_face_iter->first) != visited_reset_points.end()) {
+					// We've seen this face already... try again
+					continue;
+				}
+				visited_reset_points.insert(start_face_iter->first);
 				// Create an exploration from ExpFace in each of the three directions
 				int vertices[] = {exp_face->v0, exp_face->v1, exp_face->v2};
 				BOOST_FOREACH(int exp_vertex, vertices) {
