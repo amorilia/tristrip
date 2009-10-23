@@ -11,6 +11,7 @@ include_directories(${TRISTRIP_SOURCE_DIR}/include)
 # build the actual library
 add_library(tristrip
     src/trianglemesh.cpp
+    src/trianglestripifier.cpp
 )
 target_link_libraries(tristrip)
 
