@@ -39,8 +39,7 @@ and triangulation of strips."""
 #
 # ***** END LICENSE BLOCK *****
 
-from pyffi.utils.trianglestripifier import TriangleStripifier
-from pyffi.utils.trianglemesh import FaceEdgeMesh
+import pytristrip
 
 def triangulate(strips):
     """A generator for iterating over the faces in a set of
@@ -116,23 +115,7 @@ def stripify(triangles, stitchstrips = False):
     >>> strips = stripify(triangles)
     >>> _checkStrips(triangles, strips) # NvTriStrip gives wrong result
     """
-
-    strips = []
-    # build a mesh from triangles
-    mesh = FaceEdgeMesh()
-    for face in triangles:
-        mesh.AddFace(*face)
-
-    # calculate the strip
-    stripifier = TriangleStripifier()
-    stripifier.GLSelector.MinStripLength = 0
-    stripifier.GLSelector.Samples = 10
-    stripifier(mesh)
-
-    # add the triangles to it
-    strips.extend([face for face in _generateFacesFromTriangles(stripifier.TriangleList)])
-    # add strips
-    strips.extend(stripifier.TriangleStrips)
+    strips = pytristrip.stripify(triangles)
 
     # stitch the strips if needed
     if stitchstrips: return [stitchStrips(strips)]
