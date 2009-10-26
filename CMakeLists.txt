@@ -25,16 +25,8 @@ add_library(tristrip SHARED
 )
 target_link_libraries(tristrip)
 
-# build python bindings
-## compile against the tristrip library:
-cython_add_module(pytristrip)
-target_link_libraries(pytristrip tristrip)
-## self-contained compile:
-#cython_add_module(pytristrip
-#    src/trianglemesh.cpp
-#    src/trianglestripifier.cpp
-#    src/tristrip.cpp
-#)
+# build the python bindings
+add_subdirectory(python)
 
 # build the tests
 enable_testing()

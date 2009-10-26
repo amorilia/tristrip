@@ -18,8 +18,11 @@ macro(CYTHON_ADD_MODULE name)
         ARGS -I ${CYTHON_INCLUDE_DIRECTORIES} -o ${name}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/${name}.pyx
         DEPENDS ${name}.pyx
         COMMENT "Cythonizing ${name}.pyx")
-    add_library(${name} SHARED ${name}.cpp ${ARGN})
-    set_target_properties(${name} PROPERTIES PREFIX "")
+    add_library(${name}-cython SHARED ${name}.cpp ${ARGN})
+    set_target_properties(${name}-cython PROPERTIES
+        PREFIX "" 
+        OUTPUT_NAME ${name}
+    )
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 endmacro(CYTHON_ADD_MODULE)
 
