@@ -207,7 +207,7 @@ void ExperimentSelector::clear() {
 	best_sample.clear();
 }
 
-TriangleStripifier::TriangleStripifier(MeshPtr _mesh) : selector(3, 0), mesh(_mesh), start_face_iter(_mesh->faces.end()) {};
+TriangleStripifier::TriangleStripifier(MeshPtr _mesh) : selector(10, 0), mesh(_mesh), start_face_iter(_mesh->faces.end()) {};
 
 Mesh::FaceMap::const_iterator TriangleStripifier::find_start_face() {
 	Mesh::FaceMap::const_iterator bestface = mesh->faces.begin();

@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_start_face) {
 	MFacePtr f = m->add_face(8, 0, 10); // single neighbour
 	TriangleStripifier t(m);
 	t.find_start_face();
-	t.start_face_iter->second->dump();
+	//t.start_face_iter->second->dump();
 	BOOST_CHECK_EQUAL(t.start_face_iter->second, f);
 }
 
@@ -165,6 +165,7 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_traversal) {
 
 	// ... extra check, could omit this
 	BOOST_CHECK_EQUAL(*i++, 11);
+	BOOST_CHECK_EQUAL(*i++, 11);
 	BOOST_CHECK_EQUAL(*i++, 10);
 	BOOST_CHECK_EQUAL(*i++, 8);
 	BOOST_CHECK_EQUAL(*i++, 0);
@@ -202,6 +203,7 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_traversal) {
 	TriangleStripPtr s3(new TriangleStrip(f, v, 3));
 	s3->build();
 	i = s3->strip.begin();
+	BOOST_CHECK_EQUAL(*i++, 33);
 	BOOST_CHECK_EQUAL(*i++, 33);
 	BOOST_CHECK_EQUAL(*i++, 11);
 	BOOST_CHECK_EQUAL(*i++, 31);
@@ -243,13 +245,13 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips) {
 	std::list<TriangleStripPtr>::const_iterator strip = strips.begin();
 	std::list<int>::const_iterator i = (*strip)->strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 11);
-	BOOST_CHECK_EQUAL(*i++, 10);
-	BOOST_CHECK_EQUAL(*i++, 8);
-	BOOST_CHECK_EQUAL(*i++, 0);
-	BOOST_CHECK_EQUAL(*i++, 1);
-	BOOST_CHECK_EQUAL(*i++, 2);
-	BOOST_CHECK_EQUAL(*i++, 7);
 	BOOST_CHECK_EQUAL(*i++, 4);
+	BOOST_CHECK_EQUAL(*i++, 7);
+	BOOST_CHECK_EQUAL(*i++, 2);
+	BOOST_CHECK_EQUAL(*i++, 1);
+	BOOST_CHECK_EQUAL(*i++, 0);
+	BOOST_CHECK_EQUAL(*i++, 8);
+	BOOST_CHECK_EQUAL(*i++, 10);
 	BOOST_CHECK_EQUAL(*i++, 11);
 	BOOST_CHECK(i == (*strip)->strip.end());
 

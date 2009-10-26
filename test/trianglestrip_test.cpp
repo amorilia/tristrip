@@ -55,6 +55,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test) {
 	t.build();
 	std::list<int>::const_iterator i = t.strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 4);
+	BOOST_CHECK_EQUAL(*i++, 4);
 	BOOST_CHECK_EQUAL(*i++, 7);
 	BOOST_CHECK_EQUAL(*i++, 2);
 	BOOST_CHECK_EQUAL(*i++, 1);
