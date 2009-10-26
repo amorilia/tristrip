@@ -167,7 +167,9 @@ void TriangleStrip::build() {
 	// while traversing backwards, start face gets shifted forward
 	// so we keep track of that (to get winding right in the end)
 	traverse_faces(v1, v2, true);
-	traverse_faces(v1, v0, false);
+	int count = traverse_faces(v1, v0, false);
+	// fix winding by adding degenerate triangle to front, if needed
+	if (count & 1) strip.push_front(strip.front());
 	// XXX debug
 	assert(start_face == *start_face_iter);
 };
