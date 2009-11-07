@@ -12,6 +12,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 include(UseCython)
 
+find_package(PythonInterp REQUIRED)
 find_package(PythonLibs REQUIRED)
 
 # include tristrip headers

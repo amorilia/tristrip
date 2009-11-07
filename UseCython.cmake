@@ -14,8 +14,8 @@ endif(NOT CYTHON_INCLUDE_DIRECTORIES)
 macro(CYTHON_ADD_MODULE name)
     add_custom_command(
         OUTPUT ${name}.cpp
-        COMMAND cython
-        ARGS -I ${CYTHON_INCLUDE_DIRECTORIES} -o ${name}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/${name}.pyx
+        COMMAND ${PYTHON_EXECUTABLE}
+        ARGS ${PYTHON_INCLUDE_PATH}/../Scripts/cython.py -I ${CYTHON_INCLUDE_DIRECTORIES} -o ${name}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/${name}.pyx
         DEPENDS ${name}.pyx
         COMMENT "Cythonizing ${name}.pyx")
     add_library(${name} SHARED ${name}.cpp ${ARGN})
