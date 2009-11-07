@@ -237,6 +237,7 @@ Mesh::FaceMap::const_iterator TriangleStripifier::find_start_face() {
 		if (bestscore >= 2) break;
 	};
 	start_face_iter = bestface;
+	return start_face_iter;
 };
 
 bool TriangleStripifier::find_good_reset_point() {
