@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 2.6)
 project(TRISTRIP)
 
 # find boost
-find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+#find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+#include_directories(${Boost_INCLUDE_DIRS})
+
+find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # use cython
@@ -29,6 +32,6 @@ target_link_libraries(tristrip)
 add_subdirectory(python)
 
 # build the tests
-enable_testing()
-add_subdirectory(test)
+#enable_testing()
+#add_subdirectory(test)
 
