@@ -141,21 +141,6 @@ bool Face::operator==(const Face & otherface) const {
 	return ((v0 == otherface.v0) && (v1 == otherface.v1) && (v2 == otherface.v2));
 };
 
-int Face::get_vertex_winding(int pv0, int pv1) const {
-	if (((pv0 == v0) && (pv1 == v1))
-	        ||
-	        ((pv0 == v1) && (pv1 == v2))
-	        ||
-	        ((pv0 == v2) && (pv1 == v0))) return 0;
-	else if (((pv1 == v0) && (pv0 == v1))
-	         ||
-	         ((pv1 == v1) && (pv0 == v2))
-	         ||
-	         ((pv1 == v2) && (pv0 == v0))) return 1;
-	// bug!
-	throw std::runtime_error("Invalid vertex index.");
-}
-
 int Face::get_next_vertex(int vi) const {
 	if (vi == v0) return v1;
 	else if (vi == v1) return v2;

@@ -69,21 +69,6 @@ BOOST_AUTO_TEST_CASE(edge_index_test_1) {
 	BOOST_CHECK_EQUAL(edge.ev1, 10);
 }
 
-BOOST_AUTO_TEST_CASE(face_winding_test) {
-	Face f(5, 6, 7);
-	// throw on illegal index?
-	BOOST_CHECK_THROW(f.get_vertex_winding(5, 8), std::runtime_error);
-	BOOST_CHECK_THROW(f.get_vertex_winding(8, 5), std::runtime_error);
-	BOOST_CHECK_THROW(f.get_vertex_winding(8, 9), std::runtime_error);
-	// correct winding?
-	BOOST_CHECK_EQUAL(f.get_vertex_winding(5, 6), 0);
-	BOOST_CHECK_EQUAL(f.get_vertex_winding(6, 7), 0);
-	BOOST_CHECK_EQUAL(f.get_vertex_winding(7, 5), 0);
-	BOOST_CHECK_EQUAL(f.get_vertex_winding(6, 5), 1);
-	BOOST_CHECK_EQUAL(f.get_vertex_winding(7, 6), 1);
-	BOOST_CHECK_EQUAL(f.get_vertex_winding(5, 7), 1);
-}
-
 BOOST_AUTO_TEST_CASE(face_next_vertex_test) {
 	Face f(9, 3, 18);
 	// throw on illegal index?

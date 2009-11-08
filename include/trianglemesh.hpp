@@ -119,10 +119,6 @@ public:
 	bool operator<(const Face & otherface) const;
 	bool operator==(const Face & otherface) const;
 
-	//! Returns +1 if vertex order goes with face winding, -1 if
-	//! it it goes against face winding.
-	int get_vertex_winding(int pv0, int pv1) const;
-
 	//! Get next vertex (keeps eternally looping).
 	int get_next_vertex(int vi) const;
 
