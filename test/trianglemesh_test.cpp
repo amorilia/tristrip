@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(face_vertex_order_test_2) {
 	BOOST_CHECK_EQUAL(f.v2, 6);
 }
 
-BOOST_AUTO_TEST_CASE(add_face_test) {
+BOOST_AUTO_TEST_CASE(mesh_add_face_test) {
 	Mesh m;
 
 	// add faces
@@ -121,12 +121,20 @@ BOOST_AUTO_TEST_CASE(add_face_test) {
 	BOOST_CHECK_EQUAL(m._edges.size(), 12);
 }
 
-BOOST_AUTO_TEST_CASE(face_add_face_test) {
+BOOST_AUTO_TEST_CASE(face_faces_test_0) {
 	// construct mesh
 	Mesh m;
 	MFacePtr f0 = m.add_face(0, 1, 2);
 	MFacePtr f1 = m.add_face(1, 3, 2);
 	MFacePtr f2 = m.add_face(2, 3, 4);
+
+	// 0->-1
+	//  \ / \
+	//   2-<-3
+	//   2->-3
+	//    \ /
+	//     4
+
 	// correct faces?
 	// f0->faces0 are faces opposite vertex 0, so along edge (1,2)
 	BOOST_CHECK_EQUAL(f0->faces0.size(), 1);
@@ -152,37 +160,31 @@ BOOST_AUTO_TEST_CASE(face_add_face_test) {
 	BOOST_CHECK_EQUAL(f2->faces2[0].lock(), f1);
 }
 
-/* XXX todo: fix
-
-BOOST_AUTO_TEST_CASE(edge_get_next_face_test) {
+BOOST_AUTO_TEST_CASE(face_faces_test_1) {
 	// construct mesh
 	Mesh m;
 	MFacePtr f0 = m.add_face(0, 1, 2);
-	MFacePtr f1 = m.add_face(2, 1, 3);
+	MFacePtr f1 = m.add_face(1, 3, 2);
 	MFacePtr f2 = m.add_face(2, 3, 4);
-	MFacePtr f3 = m.add_face(5, 3, 2);
-	MEdgePtr e;
-	// single face: returns no next face
-	e = f0->get_edge(0, 1);
-	MEdge::Faces::const_iterator face_iter = e->faces.begin();
-	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), MFacePtr());
-	// two faces: returns them alternatively
-	e = f0->get_edge(1, 2);
-	face_iter = e->faces.begin();
-	BOOST_CHECK_EQUAL(MFacePtr(*face_iter), f0);
-	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f1);
-	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f0);
-	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f1);
-	// three faces...
-	e = f3->get_edge(2, 3);
-	face_iter = e->faces.begin();
-	BOOST_CHECK_EQUAL(MFacePtr(*face_iter), f1);
-	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f2);
-	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f3);
-	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f1);
-	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f2);
-	BOOST_CHECK_EQUAL(e->get_next_face(face_iter), f3);
+	MFacePtr f3 = m.add_face(2, 3, 5);
+	// edge with no adjacent faces:
+	BOOST_CHECK_EQUAL(f0->faces2.size(), 0); // f0 0 1
+	// edge with one adjacent face
+	BOOST_CHECK_EQUAL(f0->faces0.size(), 1); // f0 1 2
+	BOOST_CHECK_EQUAL(f1->faces1.size(), 1); // f1 2 1
+	BOOST_CHECK_EQUAL(f0->faces0[0].lock(), f1);
+	BOOST_CHECK_EQUAL(f1->faces1[0].lock(), f0);
+	// edge with two adjacent faces
+	BOOST_CHECK_EQUAL(f1->faces0.size(), 2); // f1 3 2
+	BOOST_CHECK_EQUAL(f2->faces2.size(), 1); // f2 2 3
+	BOOST_CHECK_EQUAL(f3->faces2.size(), 1); // f3 2 3
+	BOOST_CHECK_EQUAL(f1->faces0[0].lock(), f2);
+	BOOST_CHECK_EQUAL(f1->faces0[1].lock(), f3);
+	BOOST_CHECK_EQUAL(f2->faces2[0].lock(), f1);
+	BOOST_CHECK_EQUAL(f3->faces2[0].lock(), f1);
 }
+
+/* XXX todo: fix
 
 BOOST_AUTO_TEST_CASE(face_get_next_face_test_0) {
 	// single triangle mesh
