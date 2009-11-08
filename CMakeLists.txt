@@ -2,10 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(TRISTRIP)
 
 # find boost
-#find_package(Boost REQUIRED COMPONENTS unit_test_framework)
-#include_directories(${Boost_INCLUDE_DIRS})
-
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # use cython
@@ -24,15 +21,15 @@ include_directories(
 # build the actual library
 add_library(tristrip SHARED
     src/trianglemesh.cpp
-    src/trianglestripifier.cpp
-    src/tristrip.cpp
+#    src/trianglestripifier.cpp
+#    src/tristrip.cpp
 )
 target_link_libraries(tristrip)
 
 # build the python bindings
-add_subdirectory(python)
+#add_subdirectory(python)
 
 # build the tests
-#enable_testing()
-#add_subdirectory(test)
+enable_testing()
+add_subdirectory(test)
 

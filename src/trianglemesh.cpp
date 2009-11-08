@@ -73,7 +73,7 @@ POSSIBILITY OF SUCH DAMAGE.
 //~ Definitions
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Edge::Edge(int _ev0, int _ev1) {
+Edge::Edge(int _ev0, int _ev1) : ev0(_ev0), ev1(_ev1) {
 	// ensure it is not degenerate
 	if (_ev0 == _ev1)
 		throw std::runtime_error("Degenerate edge.");
