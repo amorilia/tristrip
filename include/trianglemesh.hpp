@@ -80,7 +80,8 @@ typedef boost::shared_ptr<MEdge> MEdgePtr;
 class MFace;
 typedef boost::shared_ptr<MFace> MFacePtr;
 
-//! A standalone non-degenerate edge, represented as an ordered pair.
+//! A standalone non-degenerate directed edge, represented as a pair
+//! of indices.
 class Edge {
 public:
 	int ev0, ev1;
@@ -89,11 +90,10 @@ public:
 
 	bool operator<(const Edge & otheredge) const;
 	bool operator==(const Edge & otheredge) const;
-
-	std::vector<int> get_common_vertices(const Edge & otheredge) const;
 };
 
-//! A non-degenerate edge with links to other parts of a mesh.
+//! A non-degenerate directed edge with links to other parts of a
+//! mesh.
 class MEdge : public Edge {
 public:
 	typedef std::vector<boost::weak_ptr<MFace> > Faces;
@@ -102,18 +102,13 @@ public:
 	//! Note: don't call directly! Use Mesh::add_face.
 	MEdge(const Edge & edge);
 
-	// XXX when finished, check if we really need this method
-	//! Get next face (keeps eternally looping, and advances face_iter).
-	//! If there is only a single face, then returns MFacePtr()
-	MFacePtr get_next_face(Faces::const_iterator & face_iter) const;
-
 	//! Dump to std::cout (e.g. for debugging).
-	void dump();
+	void dump() const;
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-//! A standalone non-degenerate face.
+//! A standalone non-degenerate oriented face.
 class Face {
 public:
 	//! Vertex indices, with v0 always being the lowest index.
@@ -138,8 +133,9 @@ public:
 //! A non-degenerate face with links to other parts of a mesh.
 class MFace : public Face {
 public:
-	typedef std::vector<MEdgePtr> Edges;
-	Edges edges; //! Note: edges are set in Mesh::add_face.
+	typedef std::vector<boost::weak_ptr<MFace> > Faces;
+	//! Lists of connecting faces opposite vertex v0, v1, and v2.
+	Faces faces0, faces1, faces2;
 
 	//! The id of the strip the face is assigned to in final
 	//! stripification.
@@ -155,18 +151,11 @@ public:
 	//! Note: don't call directly! Use Mesh::add_face.
 	MFace(const Face & face);
 
-	//! Get pointer to face edge spanning two vertices.
-	MEdgePtr get_edge(int ev0, int ev1) const;
-
-	//! Get pointers to common edges between this and other face.
-	std::vector<MEdgePtr> get_common_edges(const MFace & otherface) const;
-
-	//! Find another face, also adjacent to edge, with different
-	//! edge windings.
-	MFacePtr get_next_face(int ev0, int ev1);
+	//! Get list of connecting faces along (undirected) edge.
+	Faces get_faces(int pv0, int pv1) const;
 
 	//! Dump to std::cout (e.g. for debugging).
-	void dump();
+	void dump() const;
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -174,20 +163,27 @@ public:
 //! A mesh built from faces.
 class Mesh {
 private:
-	//! Create new edge for mesh, or return existing edge. List of
-	//! faces of the new edge will be empty and needs to be
+	//! Create new edge for mesh, or return existing edge. Lists of
+	//! faces of the new edge will be empty and need to be
 	//! manually updated. For internal use only.
-	MEdgePtr add_edge(int ev0, int ev1);
+	MEdgePtr add_edge(MFacePtr face, int ev0, int ev1);
 
 public:
 	// We use maps to avoid duplicate entries and quickly detect
-	// adjacent faces and adjacent edges.
+	// adjacent faces.
 
-	typedef std::map<Face, MFacePtr> FaceMap;
-	FaceMap faces; //! Map for mesh faces.
-	typedef std::map<Edge, boost::weak_ptr<MEdge> > EdgeMap;
-	EdgeMap edges; //! Map for mesh edges. Edges are owned by
-	//! faces so this is a weak pointer.
+	typedef std::map<Face, boost::weak_ptr<MFace> > FaceMap;
+	typedef std::map<Edge, MEdgePtr> EdgeMap;
+
+	//! Map for mesh faces (used internally to avoid duplicates).
+	FaceMap _faces;
+
+	//! Map for mesh edges (used internally to build lists of
+	//! adjacent faces).
+	EdgeMap _edges;
+
+	//! Vector containing all faces.
+	std::vector<MFacePtr> faces;
 
 	//! Initialize empty mesh.
 	Mesh();
@@ -195,8 +191,12 @@ public:
 	//! Create new face for mesh, or return existing face.
 	MFacePtr add_face(int v0, int v1, int v2);
 
+	//! Lock the mesh. Frees memory by clearing the _edges and _faces
+	//! maps which are only used to update the face adjacency lists.
+	void lock();
+
 	//! Dump to std::cout (e.g. for debugging).
-	void dump();
+	void dump() const;
 };
 
 typedef boost::shared_ptr<Mesh> MeshPtr;

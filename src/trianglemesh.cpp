@@ -77,14 +77,6 @@ Edge::Edge(int _ev0, int _ev1) {
 	// ensure it is not degenerate
 	if (_ev0 == _ev1)
 		throw std::runtime_error("Degenerate edge.");
-	// order indices
-	if (_ev0 < _ev1) {
-		ev0 = _ev0;
-		ev1 = _ev1;
-	} else {
-		ev0 = _ev1;
-		ev1 = _ev0;
-	}
 };
 
 bool Edge::operator<(const Edge & otheredge) const {
@@ -99,38 +91,16 @@ bool Edge::operator==(const Edge & otheredge) const {
 	return ((ev0 == otheredge.ev0) && (ev1 == otheredge.ev1));
 };
 
-std::vector<int> Edge::get_common_vertices(const Edge & otheredge) const {
-	// return [v for v in otheredge.ev if v in self.ev]
-	std::vector<int> result;
-	if ((ev0 == otheredge.ev0) || (ev0 == otheredge.ev1))
-		result.push_back(ev0);
-	if ((ev1 == otheredge.ev0) || (ev1 == otheredge.ev1))
-		result.push_back(ev1);
-	return result;
-};
-
 MEdge::MEdge(const Edge & edge) : Edge(edge), faces() {
 	// nothing to do: faces are set in Mesh::add_face.
 };
 
-MFacePtr MEdge::get_next_face(Faces::const_iterator & face_iter) const {
-	// if there is no next face: we are done
-	if (faces.size() <= 1) {
-		return MFacePtr();
-	}
-	// advance the iterator
-	do {
-		face_iter++;
-		if (face_iter == faces.end()) face_iter = faces.begin();
-	} while (face_iter->expired());
-	// return result to new pointer
-	return MFacePtr(*face_iter);
-};
-
-void MEdge::dump() {
+void MEdge::dump() const {
 	std::cout << "  edge " << ev0 << "," << ev1 << std::endl;
 	BOOST_FOREACH(boost::weak_ptr<MFace> face, faces) {
-		std::cout << "    face " << face.lock()->v0 << "," << face.lock()->v1 << "," << face.lock()->v2 << std::endl;
+		if (MFacePtr f = face.lock()) {
+			std::cout << "    face " << f->v0 << "," << f->v1 << "," << f->v2 << std::endl;
+		};
 	};
 }
 
@@ -208,123 +178,110 @@ int Face::get_other_vertex(int pv0, int pv1) const {
 }
 
 MFace::MFace(const Face & face)
-		: Face(face), edges(),
+		: Face(face), faces0(), faces1(), faces2(),
 		strip_id(-1), test_strip_id(-1), experiment_id(-1) {
 	// nothing to do
 };
 
-MEdgePtr MFace::get_edge(int ev0, int ev1) const {
-	if (ev0 == ev1)
-		throw std::runtime_error("Vertex indices shouldn't be identical.");
-	if (((ev0 == v0) && (ev1 == v1)) || ((ev0 == v1) && (ev1 == v0)))
-		return edges[0];
-	if (((ev0 == v1) && (ev1 == v2)) || ((ev0 == v2) && (ev1 == v1)))
-		return edges[1];
-	if (((ev0 == v2) && (ev1 == v0)) || ((ev0 == v0) && (ev1 == v2)))
-		return edges[2];
+MFace::Faces MFace::get_faces(int pv0, int pv1) const {
+	int pv2 = get_other_vertex(pv0, pv1);
+	if (pv2 == v0) return faces0;
+	else if (pv2 == v1) return faces1;
+	else if (pv2 == v2) return faces2;
 	// bug!
 	throw std::runtime_error("Invalid vertex index.");
-}
+};
 
-std::vector<MEdgePtr> MFace::get_common_edges(const MFace & otherface) const {
-	//return [edge for edge in otherface.edges if edge in self.edges]
-	std::vector<MEdgePtr> result;
-	for (int i=0; i<3; i++) {
-		for (int j=0; j<3; j++) {
-			if (edges[i] == otherface.edges[j]) {
-				result.push_back(edges[i]);
-				break; // no otherface edges can match, so break j loop
-			}
-		}
-	}
-	return result;
-}
-
-MFacePtr MFace::get_next_face(int ev0, int ev1) {
-	// Note: Original name was FindOtherFace.
-	// Note: implementation is slightly simpler compared to the
-	// original RuneBlade FindOtherFace algorithm but in most use
-	// cases it gives identical results.
-	MEdgePtr edge = get_edge(ev0, ev1);
-	for (MEdge::Faces::const_iterator face_iter = edge->faces.begin();
-	        face_iter != edge->faces.end(); face_iter++) {
-		MFacePtr otherface = face_iter->lock();
-		// skip expired faces
-		// (lock() returns MFacePtr() on expired faces!)
-		if (!otherface) continue;
-		// skip given face
-		if (otherface.get() == this) continue;
-		// return other face if it has different winding along the edge
-		if (get_vertex_winding(ev0, ev1)
-		        != otherface->get_vertex_winding(ev0, ev1)) {
-			return otherface;
-		};
-	};
-	return MFacePtr();
-}
-
-void MFace::dump() {
+void MFace::dump() const {
 	std::cout << "  face " << v0 << "," << v1 << "," << v2 << std::endl;
-	std::cout << "    edge " << edges[0]->ev0 << "," << edges[0]->ev1 << std::endl;
-	std::cout << "    edge " << edges[1]->ev0 << "," << edges[1]->ev1 << std::endl;
-	std::cout << "    edge " << edges[2]->ev0 << "," << edges[2]->ev1 << std::endl;
+	BOOST_FOREACH(boost::weak_ptr<MFace> face0, faces0) {
+		if (MFacePtr f = face0.lock()) {
+			std::cout << "    face0 " << f->v0 << "," << f->v1 << "," << f->v2 << std::endl;
+		};
+	}
+	BOOST_FOREACH(boost::weak_ptr<MFace> face1, faces1) {
+		if (MFacePtr f = face1.lock()) {
+			std::cout << "    face1 " << f->v0 << "," << f->v1 << "," << f->v2 << std::endl;
+		};
+	}
+	BOOST_FOREACH(boost::weak_ptr<MFace> face2, faces2) {
+		if (MFacePtr f = face2.lock()) {
+			std::cout << "    face2 " << f->v0 << "," << f->v1 << "," << f->v2 << std::endl;
+		};
+	}
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MEdgePtr Mesh::add_edge(int ev0, int ev1) {
-	// create edge index and search if edge already exists in mesh
-	Edge edge_index(ev0, ev1);
-	EdgeMap::const_iterator edge_iter = edges.find(edge_index);
-	if ((edge_iter != edges.end()) && (!edge_iter->second.expired())) {
+MEdgePtr Mesh::add_edge(MFacePtr face, int ev0, int ev1) {
+	// create edge indices and search for edges in mesh, in both
+	// orientations
+	MEdgePtr edge01;
+	MEdgePtr edge10;
+	Edge edge01_index(ev0, ev1);
+	Edge edge10_index(ev1, ev0);
+	EdgeMap::const_iterator edge01_iter = _edges.find(edge01_index);
+	EdgeMap::const_iterator edge10_iter = _edges.find(edge10_index);
+	if (edge01_iter != _edges.end()) {
 		// edge already exists!
-		return MEdgePtr(edge_iter->second);
+		edge01 = edge01_iter->second;
 	} else {
 		// create edge
-		MEdgePtr edge(new MEdge(edge_index));
-		edges[edge_index] = edge;
-		return edge;
+		edge01 = MEdgePtr(new MEdge(edge01_index));
+		_edges[edge01_index] = edge01;
 	};
+	// update list of faces connected with edge01
+	edge01->faces.push_back(face);
+	// update connection between faces
+	if (edge10_iter != _edges.end()) {
+		// there are adjoining faces
+		edge10 = edge10_iter->second;
+		BOOST_FOREACH(boost::weak_ptr<MFace> otherface, edge10->faces) {
+			if (MFacePtr f = otherface.lock()) {
+				face->get_faces(ev0, ev1).push_back(f);
+				f->get_faces(ev0, ev1).push_back(face);
+			};
+		};
+	};
+	// return newly created edge
+	return edge01;
 }
 
-Mesh::Mesh() : faces(), edges() {};
+Mesh::Mesh() : _faces(), _edges(), faces() {};
 
 MFacePtr Mesh::add_face(int v0, int v1, int v2) {
 	// create face index and search if face already exists in mesh
 	Face face_index(v0, v1, v2);
-	FaceMap::const_iterator face_iter = faces.find(face_index);
-	if (face_iter != faces.end()) {
+	FaceMap::const_iterator face_iter = _faces.find(face_index);
+	MFacePtr face;
+	if ((face_iter != _faces.end()) && (face = face_iter->second.lock())) {
 		// face already exists!
-		return face_iter->second;
+		return face;
 	} else {
 		// create face
-		MFacePtr face(new MFace(face_index));
-		faces[face_index] = face;
-		// create edges
-		// careful here: face indices may have been reodered!!!
-		// and edges[0] *must* correspond to (face->v0, face->v1) etc.
-		// so we *must* use face->vi rather than vi
-		MEdgePtr edge01 = add_edge(face->v0, face->v1);
-		MEdgePtr edge12 = add_edge(face->v1, face->v2);
-		MEdgePtr edge20 = add_edge(face->v2, face->v0);
-		// set up weak pointers between face and edges
-		face->edges.push_back(edge01);
-		face->edges.push_back(edge12);
-		face->edges.push_back(edge20);
-		edge01->faces.push_back(face);
-		edge12->faces.push_back(face);
-		edge20->faces.push_back(face);
+		face = MFacePtr(new MFace(face_index));
+		_faces[face_index] = face;
+		faces.push_back(face);
+		// create edges (this also updates links between faces)
+		add_edge(face, face->v0, face->v1);
+		add_edge(face, face->v1, face->v2);
+		add_edge(face, face->v2, face->v0);
 		return face;
 	};
 }
 
-void Mesh::dump() {
+void Mesh::lock() {
+	_edges.clear();
+	_faces.clear();
+}
+
+void Mesh::dump() const {
 	std::cout << faces.size() << " faces" << std::endl;
-	BOOST_FOREACH(FaceMap::value_type face, faces) {
-		face.second->dump();
+	BOOST_FOREACH(MFacePtr face, faces) {
+		face->dump();
 	};
-	std::cout << edges.size() << " edges" << std::endl;
-	BOOST_FOREACH(EdgeMap::value_type edge, edges) {
-		edge.second.lock()->dump();
+	std::cout << _edges.size() << " edges" << std::endl;
+	BOOST_FOREACH(EdgeMap::value_type edge, _edges) {
+		edge.second->dump();
 	};
 }
