@@ -79,21 +79,6 @@ BOOST_AUTO_TEST_CASE(face_next_vertex_test) {
 	BOOST_CHECK_EQUAL(f.get_next_vertex(18), 9);
 }
 
-BOOST_AUTO_TEST_CASE(face_other_vertex_test) {
-	Face f(6, 2, 5);
-	// throw on illegal index?
-	BOOST_CHECK_THROW(f.get_other_vertex(6, 20), std::runtime_error);
-	BOOST_CHECK_THROW(f.get_other_vertex(60, 2), std::runtime_error);
-	BOOST_CHECK_THROW(f.get_other_vertex(60, 20), std::runtime_error);
-	// correct other vertex?
-	BOOST_CHECK_EQUAL(f.get_other_vertex(6, 2), 5);
-	BOOST_CHECK_EQUAL(f.get_other_vertex(2, 6), 5);
-	BOOST_CHECK_EQUAL(f.get_other_vertex(2, 5), 6);
-	BOOST_CHECK_EQUAL(f.get_other_vertex(5, 2), 6);
-	BOOST_CHECK_EQUAL(f.get_other_vertex(6, 5), 2);
-	BOOST_CHECK_EQUAL(f.get_other_vertex(5, 6), 2);
-}
-
 BOOST_AUTO_TEST_CASE(face_vertex_order_test_0) {
 	Face f(6, 2, 5);
 	BOOST_CHECK_EQUAL(f.v0, 2);
@@ -136,24 +121,17 @@ BOOST_AUTO_TEST_CASE(add_face_test) {
 	BOOST_CHECK_EQUAL(m._edges.size(), 12);
 }
 
-BOOST_AUTO_TEST_CASE(face_get_faces_test) {
+BOOST_AUTO_TEST_CASE(face_add_face_test) {
 	// construct mesh
 	Mesh m;
 	MFacePtr f0 = m.add_face(0, 1, 2);
-	MFacePtr f1 = m.add_face(2, 1, 3);
+	MFacePtr f1 = m.add_face(1, 3, 2);
 	MFacePtr f2 = m.add_face(2, 3, 4);
-	// throw on illegal index?
-	BOOST_CHECK_THROW(f0->get_faces(0, 3), std::runtime_error);
-	BOOST_CHECK_THROW(f0->get_faces(3, 0), std::runtime_error);
-	BOOST_CHECK_THROW(f0->get_faces(3, 4), std::runtime_error);
-	// correct edge?
+	// correct faces?
+	// f0->faces0 are faces opposite vertex 0, so along edge (1,2)
+	BOOST_CHECK_EQUAL(f0->faces0.size(), 1);
+	BOOST_CHECK_EQUAL(f0->faces0[0].lock(), f1);
 	/* XXX todo: fix
-	MFace::Faces e0, e1;
-	e0 = f0->get_faces(0, 1);
-	e1 = f0->get_faces(1, 0);
-	BOOST_CHECK_EQUAL(e0, e1);
-	e0 = f0->get_faces(0, 1);
-	e1 = f0->get_faces(1, 2);
 	BOOST_CHECK(e0 != e1);
 	e0 = f0->get_faces(1, 2);
 	e1 = f1->get_faces(1, 2);

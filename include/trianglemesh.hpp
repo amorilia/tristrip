@@ -119,18 +119,15 @@ public:
 	bool operator<(const Face & otherface) const;
 	bool operator==(const Face & otherface) const;
 
-	//! Get next vertex (keeps eternally looping).
+	//! Get next vertex.
 	int get_next_vertex(int vi) const;
-
-	//! Get other vertex.
-	int get_other_vertex(int pv0, int pv1) const;
 };
 
 //! A non-degenerate face with links to other parts of a mesh.
 class MFace : public Face {
 public:
 	typedef std::vector<boost::weak_ptr<MFace> > Faces;
-	//! Lists of connecting faces opposite vertex v0, v1, and v2.
+	//! Adjacent faces along edge opposite vertex v0, v1, and v2.
 	Faces faces0, faces1, faces2;
 
 	//! The id of the strip the face is assigned to in final
@@ -147,8 +144,11 @@ public:
 	//! Note: don't call directly! Use Mesh::add_face.
 	MFace(const Face & face);
 
-	//! Get list of connecting faces along (undirected) edge.
-	Faces get_faces(int pv0, int pv1) const;
+	//! Add adjacent face along edge opposite vi. The caller must
+	//! ensure that the faces share this edge and that the two
+	//! faces have opposite winding along it (this is *not*
+	//! checked).
+	void add_adjacent_face(MFacePtr face, int vi);
 
 	//! Dump to std::cout (e.g. for debugging).
 	void dump() const;
@@ -159,10 +159,12 @@ public:
 //! A mesh built from faces.
 class Mesh {
 private:
-	//! Create new edge for mesh, or return existing edge. Lists of
-	//! faces of the new edge will be empty and need to be
-	//! manually updated. For internal use only.
-	MEdgePtr add_edge(MFacePtr face, int ev0, int ev1);
+	//! Create new edge for mesh for given face, or return
+	//! existing edge. Lists of faces of the new/existing edge is
+	//! also updated, as well as lists of adjacent faces. For
+	//! internal use only, called on each edge of the face in
+	//! add_face.
+	void add_edge(MFacePtr face, int pv0, int pv1);
 
 public:
 	// We use maps to avoid duplicate entries and quickly detect
@@ -171,11 +173,12 @@ public:
 	typedef std::map<Face, boost::weak_ptr<MFace> > FaceMap;
 	typedef std::map<Edge, MEdgePtr> EdgeMap;
 
-	//! Map for mesh faces (used internally to avoid duplicates).
+	//! Map for mesh faces. Used internally to avoid
+	//! duplicates. Deleted when mesh is locked.
 	FaceMap _faces;
 
-	//! Map for mesh edges (used internally to build lists of
-	//! adjacent faces).
+	//! Map for mesh edges. Used internally to build lists of
+	//! adjacent faces. Deleted when mesh is locked.
 	EdgeMap _edges;
 
 	//! Vector containing all faces.

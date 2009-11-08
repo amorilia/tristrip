@@ -149,32 +149,20 @@ int Face::get_next_vertex(int vi) const {
 	throw std::runtime_error("Invalid vertex index.");
 }
 
-int Face::get_other_vertex(int pv0, int pv1) const {
-	if (pv0 == pv1)
-		throw std::runtime_error("Vertex indices shouldn't be identical.");
-	if (((pv0 == v0) && (pv1 == v1)) || ((pv0 == v1) && (pv1 == v0)))
-		return v2;
-	if (((pv0 == v1) && (pv1 == v2)) || ((pv0 == v2) && (pv1 == v1)))
-		return v0;
-	if (((pv0 == v2) && (pv1 == v0)) || ((pv0 == v0) && (pv1 == v2)))
-		return v1;
-	// bug!
-	throw std::runtime_error("Invalid vertex index.");
-}
-
 MFace::MFace(const Face & face)
 		: Face(face), faces0(), faces1(), faces2(),
 		strip_id(-1), test_strip_id(-1), experiment_id(-1) {
 	// nothing to do
 };
 
-MFace::Faces MFace::get_faces(int pv0, int pv1) const {
-	int pv2 = get_other_vertex(pv0, pv1);
-	if (pv2 == v0) return faces0;
-	else if (pv2 == v1) return faces1;
-	else if (pv2 == v2) return faces2;
+void MFace::add_adjacent_face(MFacePtr face, int vi) {
+	// XXX todo: in debug build, check face winding and edge
+	// sharing
+	if (vi == v0) faces0.push_back(face);
+	else if (vi == v1) faces1.push_back(face);
+	else if (vi == v2) faces2.push_back(face);
 	// bug!
-	throw std::runtime_error("Invalid vertex index.");
+	else throw std::runtime_error("Invalid vertex index.");
 };
 
 void MFace::dump() const {
@@ -198,38 +186,50 @@ void MFace::dump() const {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MEdgePtr Mesh::add_edge(MFacePtr face, int ev0, int ev1) {
-	// create edge indices and search for edges in mesh, in both
-	// orientations
-	MEdgePtr edge01;
-	MEdgePtr edge10;
-	Edge edge01_index(ev0, ev1);
-	Edge edge10_index(ev1, ev0);
+void Mesh::add_edge(MFacePtr face, int pv0, int pv1) {
+	// add edge to edge map
+
+	// create edge index and search for edge in mesh
+	Edge edge01_index(pv0, pv1);
 	EdgeMap::const_iterator edge01_iter = _edges.find(edge01_index);
-	EdgeMap::const_iterator edge10_iter = _edges.find(edge10_index);
 	if (edge01_iter != _edges.end()) {
 		// edge already exists!
-		edge01 = edge01_iter->second;
+		// update list of faces that have this edge
+		edge01_iter->second->faces.push_back(face);
 	} else {
 		// create edge
-		edge01 = MEdgePtr(new MEdge(edge01_index));
+		MEdgePtr edge01(new MEdge(edge01_index));
 		_edges[edge01_index] = edge01;
+		// update list of faces that have this edge
+		edge01->faces.push_back(face);
 	};
-	// update list of faces connected with edge01
-	edge01->faces.push_back(face);
-	// update connection between faces
+
+	// find adjacent faces
+
+	//    pv0---other_pv2
+	//   /  \  /
+	// pv2---pv1
+
+	// with other_pv0 == pv1
+	// with other_pv1 == pv0
+
+	// create reverse edge index and search for reverse edge in mesh
+	Edge edge10_index(pv1, pv0);
+	EdgeMap::const_iterator edge10_iter = _edges.find(edge10_index);
 	if (edge10_iter != _edges.end()) {
-		// there are adjoining faces
-		edge10 = edge10_iter->second;
-		BOOST_FOREACH(boost::weak_ptr<MFace> otherface, edge10->faces) {
-			if (MFacePtr f = otherface.lock()) {
-				face->get_faces(ev0, ev1).push_back(f);
-				f->get_faces(ev0, ev1).push_back(face);
+		// the faces of the reverse edge are adjacent faces
+		MEdgePtr edge10(edge10_iter->second);
+		// find opposite vertex of face
+		int pv2 = face->get_next_vertex(pv1);
+		BOOST_FOREACH(boost::weak_ptr<MFace> _otherface,
+		              edge10->faces) {
+			if (MFacePtr otherface = _otherface.lock()) {
+				int other_pv2 = otherface->get_next_vertex(pv0);
+				face->add_adjacent_face(otherface, pv2);
+				otherface->add_adjacent_face(face, other_pv2);
 			};
 		};
 	};
-	// return newly created edge
-	return edge01;
 }
 
 Mesh::Mesh() : _faces(), _edges(), faces() {};
@@ -238,21 +238,21 @@ MFacePtr Mesh::add_face(int v0, int v1, int v2) {
 	// create face index and search if face already exists in mesh
 	Face face_index(v0, v1, v2);
 	FaceMap::const_iterator face_iter = _faces.find(face_index);
-	MFacePtr face;
-	if ((face_iter != _faces.end()) && (face = face_iter->second.lock())) {
+	if (face_iter != _faces.end()) {
 		// face already exists!
-		return face;
-	} else {
-		// create face
-		face = MFacePtr(new MFace(face_index));
-		_faces[face_index] = face;
-		faces.push_back(face);
-		// create edges (this also updates links between faces)
-		add_edge(face, face->v0, face->v1);
-		add_edge(face, face->v1, face->v2);
-		add_edge(face, face->v2, face->v0);
-		return face;
-	};
+		if (MFacePtr old_face = face_iter->second.lock()) {
+			return old_face;
+		}
+	}
+	// create face
+	MFacePtr face(new MFace(face_index));
+	_faces[face_index] = face;
+	faces.push_back(face);
+	// create edges and update links between faces
+	add_edge(face, v0, v1);
+	add_edge(face, v1, v2);
+	add_edge(face, v2, v0);
+	return face;
 }
 
 void Mesh::lock() {
