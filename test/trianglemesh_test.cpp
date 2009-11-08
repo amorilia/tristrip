@@ -184,14 +184,16 @@ BOOST_AUTO_TEST_CASE(face_faces_test_1) {
 	BOOST_CHECK_EQUAL(f3->faces2[0].lock(), f1);
 }
 
-/* XXX todo: fix
-
-BOOST_AUTO_TEST_CASE(face_get_next_face_test_0) {
+BOOST_AUTO_TEST_CASE(fac_faces_test_2) {
 	// single triangle mesh
 	Mesh m;
 	MFacePtr f = m.add_face(0, 1, 2);
-	BOOST_CHECK_EQUAL(f->get_next_face(0, 1), MFacePtr());
+	BOOST_CHECK_EQUAL(f->faces0.size(), 0);
+	BOOST_CHECK_EQUAL(f->faces1.size(), 0);
+	BOOST_CHECK_EQUAL(f->faces2.size(), 0);
 }
+
+/* XXX todo: fix
 
 BOOST_AUTO_TEST_CASE(face_get_next_face_test_1) {
 	// construct slightly more complicated mesh
