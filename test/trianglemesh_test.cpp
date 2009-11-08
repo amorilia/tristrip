@@ -131,23 +131,25 @@ BOOST_AUTO_TEST_CASE(face_add_face_test) {
 	// f0->faces0 are faces opposite vertex 0, so along edge (1,2)
 	BOOST_CHECK_EQUAL(f0->faces0.size(), 1);
 	BOOST_CHECK_EQUAL(f0->faces0[0].lock(), f1);
-	/* XXX todo: fix
-	BOOST_CHECK(e0 != e1);
-	e0 = f0->get_faces(1, 2);
-	e1 = f1->get_faces(1, 2);
-	BOOST_CHECK_EQUAL(e0, e1);
-	BOOST_CHECK_EQUAL(e0->ev0, 1);
-	BOOST_CHECK_EQUAL(e0->ev1, 2);
-	BOOST_CHECK_EQUAL(e1->ev0, 1);
-	BOOST_CHECK_EQUAL(e1->ev1, 2);
-	e0 = f1->get_faces(2, 3);
-	e1 = f2->get_faces(2, 3);
-	BOOST_CHECK_EQUAL(e0, e1);
-	BOOST_CHECK_EQUAL(e0->ev0, 2);
-	BOOST_CHECK_EQUAL(e0->ev1, 3);
-	BOOST_CHECK_EQUAL(e1->ev0, 2);
-	BOOST_CHECK_EQUAL(e1->ev1, 3);
-	*/
+	// f0->faces1 are faces opposite vertex 1, so along edge (2,0)
+	BOOST_CHECK_EQUAL(f0->faces1.size(), 0);
+	// f0->faces2 are faces opposite vertex 2, so along edge (0,1)
+	BOOST_CHECK_EQUAL(f0->faces2.size(), 0);
+	// f1->faces0 are faces opposite vertex 1, so along edge (3,2)
+	BOOST_CHECK_EQUAL(f1->faces0.size(), 1);
+	BOOST_CHECK_EQUAL(f1->faces0[0].lock(), f2);
+	// f1->faces1 are faces opposite vertex 3, so along edge (2,1)
+	BOOST_CHECK_EQUAL(f1->faces1.size(), 1);
+	BOOST_CHECK_EQUAL(f1->faces1[0].lock(), f0);
+	// f1->faces2 are faces opposite vertex 2, so along edge (1,3)
+	BOOST_CHECK_EQUAL(f1->faces2.size(), 0);
+	// f2->faces0 are faces opposite vertex 2, so along edge (3,4)
+	BOOST_CHECK_EQUAL(f2->faces0.size(), 0);
+	// f2->faces1 are faces opposite vertex 3, so along edge (4,2)
+	BOOST_CHECK_EQUAL(f2->faces1.size(), 0);
+	// f2->faces2 are faces opposite vertex 4, so along edge (2,3)
+	BOOST_CHECK_EQUAL(f2->faces2.size(), 1);
+	BOOST_CHECK_EQUAL(f2->faces2[0].lock(), f1);
 }
 
 /* XXX todo: fix
