@@ -104,14 +104,27 @@ void TriangleStrip::mark_face(MFacePtr face) {
 	}
 }
 
-int TriangleStrip::traverse_faces(int v0, int v1, bool forward) {
+MFacePtr TriangleStrip::get_unmarked_adjacent_face(MFacePtr face, int vi) {
+	BOOST_FOREACH(boost::weak_ptr<MFace> _otherface, face->get_adjacent_faces(vi)) {
+		if (MFacePtr otherface = _otherface.lock()) {
+			if (!is_face_marked(otherface)) {
+				return otherface;
+			}
+		}
+	}
+	return MFacePtr();
+}
+
+int TriangleStrip::traverse_faces(int pv0, bool forward) {
+	int count = 0;
+	int pv1 = start_face->get_next_vertex(pv0);
+	int pv2 = start_face->get_next_vertex(pv1);
 #ifdef DEBUG
 	// XXX debug
-	std::cout << "traversing " << forward << " from " << v0 << "," << v1 << std::endl;
+	std::cout << "starting traversal from " << pv0 << ", " << pv1 << ", " << pv2 << std::endl;
 #endif
-	int count = 0;
-	MFacePtr next_face = start_face->get_next_face(v0, v1);
-	while ((next_face) && (!is_face_marked(next_face))) {
+	MFacePtr next_face = get_unmarked_adjacent_face(start_face, pv0);
+	while (next_face) {
 		// XXX the nvidia stripifier says the following:
 		// XXX
 		// XXX   this tests to see if a face is "unique",
@@ -125,27 +138,61 @@ int TriangleStrip::traverse_faces(int v0, int v1, bool forward) {
 		// XXX I simple ignore
 		// XXX this (rare) problem for now :-)
 		/* if not BreakTest(NextFace): break */
-		int v2 = next_face->get_other_vertex(v0, v1);
+		// mark face, and update count
+		mark_face(next_face);
+		count++;
+		// update vertex indices for next_face so that strip
+		// continues along edge opposite pv0, add vertex to
+		// strip, and add face to strip
+		if (count & 1) {
+			if (forward) {
+				//   pv1--x            pv0-pv1
+				//   / \ /   becomes   / \ /
+				// pv0-pv2            x--pv2
+				pv0 = pv1;
+				pv1 = next_face->get_next_vertex(pv0);
+				strip.push_back(pv1);
+				faces.push_back(next_face);
+			} else {
+				// x--pv2           pv2-pv0
+				//  \ / \   becomes   \ / \
+				//  pv1-pv0           pv1--x
+				pv0 = pv2;
+				pv2 = next_face->get_next_vertex(pv1);
+				strip.push_front(pv2);
+				faces.push_front(next_face);
+			}
+		} else {
+			if (forward) {
+				//  pv0-pv1             x--pv1
+				//  / \ / \   becomes  / \ / \
+				// x--pv2--x          x--pv0-pv2
+				pv0 = pv2;
+				pv2 = next_face->get_next_vertex(pv1);
+				strip.push_back(pv2);
+				faces.push_back(next_face);
+			} else {
+				//  pv2-pv0             pv2--x
+				//  / \ / \   becomes   / \ / \
+				// x--pv1--x          pv1-pv0--x
+				pv0 = pv1;
+				pv1 = next_face->get_next_vertex(pv0);
+				strip.push_front(pv1);
+				faces.push_front(next_face);
+			}
+		}
 #ifdef DEBUG
 		// XXX debug
-		std::cout << " at edge " << v0 << "," << v1 << std::endl;
-		std::cout << " traversing face " << next_face->v0 << "," << next_face->v1 << "," << next_face->v2 << std::endl;
+		std::cout << " traversing face " << pv0 << ", " << pv1 << ", " << pv2 << std::endl;
+		if (pv1 != next_face->get_next_vertex(pv0))
+			throw std::runtime_error("Traversal bug.");
+		if (pv2 != next_face->get_next_vertex(pv1))
+			throw std::runtime_error("Traversal bug.");
+		if (pv0 != next_face->get_next_vertex(pv2))
+			throw std::runtime_error("Traversal bug.");
 #endif
-		if (forward) {
-			faces.push_back(next_face);
-			strip.push_back(v2);
-		} else {
-			faces.push_front(next_face);
-			strip.push_front(v2);
-		};
-		v0 = v1;
-		v1 = v2;
-#ifdef DEBUG
-		std::cout << " next edge " << v0 << "," << v1 << std::endl;
-#endif
-		mark_face(next_face);
-		next_face = next_face->get_next_face(v0, v1);
-		count++;
+		// get next face opposite pv0
+		next_face = get_unmarked_adjacent_face(next_face, pv0);
 	};
 	return count;
 };
@@ -166,8 +213,8 @@ void TriangleStrip::build() {
 	strip.push_back(v2);
 	// while traversing backwards, start face gets shifted forward
 	// so we keep track of that (to get winding right in the end)
-	traverse_faces(v1, v2, true);
-	int count = traverse_faces(v1, v0, false);
+	traverse_faces(v0, true);
+	int count = traverse_faces(v2, false);
 	// fix winding by adding degenerate triangle to front, if needed
 	if (count & 1) strip.push_front(strip.front());
 	// XXX debug
@@ -209,55 +256,16 @@ void ExperimentSelector::clear() {
 
 TriangleStripifier::TriangleStripifier(MeshPtr _mesh) : selector(10, 0), mesh(_mesh), start_face_iter(_mesh->faces.end()) {};
 
-Mesh::FaceMap::const_iterator TriangleStripifier::find_start_face() {
-	Mesh::FaceMap::const_iterator bestface = mesh->faces.begin();
-	int bestscore = 0;
-	int faceindex = -1;
-
-	for (Mesh::FaceMap::const_iterator face = mesh->faces.begin();
-	        face != mesh->faces.end(); face++) {
-		faceindex++;
-		int score = 0;
-		// increase score for each edge that this face
-		// cannot build a non-trivial strip on (i.e. has
-		// an adjacent face with same orientation)
-		BOOST_FOREACH(MEdgePtr edge, face->second->edges) {
-			if (face->second->get_next_face(edge->ev0, edge->ev1) == MFacePtr()) {
-				score++;
-			};
-		};
-		// a score of 3 signifies a lonely face
-		if (score >= 3) continue;
-		// best possible score is 2:
-		// a face with only one neighbor
-		if (bestscore < score) {
-			bestface = face;
-			bestscore = score;
-		};
-		if (bestscore >= 2) break;
-	};
-	start_face_iter = bestface;
-	return start_face_iter;
-};
-
 bool TriangleStripifier::find_good_reset_point() {
-	if (start_face_iter == mesh->faces.end()) {
-		return (find_start_face() != mesh->faces.end());
-	};
-
 	int start_step = mesh->faces.size() / 10;
-	// XXX this is crap: map iterators only do ++
-
-	// XXX question: does it make sense to skip 1/10th of the mesh
-	// XXX even if some of these faces might have strip_id -1?
-	for (int i=0; i<start_step; i++) {
-		start_face_iter++;
-		if (start_face_iter == mesh->faces.end())
-			start_face_iter = mesh->faces.begin();
+	if ((mesh->faces.end() - start_face_iter) > start_step) {
+		start_face_iter += start_step;
+	} else {
+		start_face_iter = mesh->faces.begin() + (start_step - (mesh->faces.end() - start_face_iter));
 	};
-	Mesh::FaceMap::const_iterator face = start_face_iter;
+	std::vector<MFacePtr>::const_iterator face = start_face_iter;
 	do {
-		if (face->second->strip_id == -1) {
+		if ((*face)->strip_id == -1) {
 			// face not used in any strip, so start there for next strip
 			start_face_iter = face;
 			return true;
@@ -266,8 +274,7 @@ bool TriangleStripifier::find_good_reset_point() {
 		if (face == mesh->faces.end())
 			face = mesh->faces.begin();
 	} while (face != start_face_iter);
-	// We've exhausted all the faces... so lets exit this loop
-	start_face_iter = mesh->faces.end();
+	// we have exhausted all the faces
 	return false;
 };
 

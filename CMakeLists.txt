@@ -21,7 +21,7 @@ include_directories(
 # build the actual library
 add_library(tristrip SHARED
     src/trianglemesh.cpp
-#    src/trianglestripifier.cpp
+    src/trianglestripifier.cpp
 #    src/tristrip.cpp
 )
 target_link_libraries(tristrip)

@@ -95,12 +95,15 @@ public:
 	//! Mark face in this strip.
 	void mark_face(MFacePtr face);
 
+	//! Get unmarked adjacent face.
+	MFacePtr get_unmarked_adjacent_face(MFacePtr face, int vi);
+
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 	//! Building face traversal list starting from the start_face and
-	//! the given edge indices. Returns number of faces added.
-	int traverse_faces(int v0, int v1, bool forward);
+	//! the edge opposite pv0. Returns number of faces added.
+	int traverse_faces(int pv0, bool forward);
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -162,7 +165,7 @@ public:
 
 	ExperimentSelector selector;
 	MeshPtr mesh;
-	Mesh::FaceMap::const_iterator start_face_iter;
+	std::vector<MFacePtr>::const_iterator start_face_iter;
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Public Methods
@@ -173,10 +176,6 @@ public:
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Protected Methods
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-	//! Find a good face to start the very first strip with, and stores this
-	//! into start_face_iter.
-	Mesh::FaceMap::const_iterator find_start_face();
 
 	//! Find a good face to start stripification, potentially
 	//! after some strips have already been created. Result is
