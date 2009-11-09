@@ -155,12 +155,10 @@ MFace::MFace(const Face & face)
 	// nothing to do
 };
 
-void MFace::add_adjacent_face(MFacePtr face, int vi) {
-	// XXX todo: in debug build, check face winding and edge
-	// sharing
-	if (vi == v0) faces0.push_back(face);
-	else if (vi == v1) faces1.push_back(face);
-	else if (vi == v2) faces2.push_back(face);
+MFace::Faces & MFace::get_adjacent_faces(int vi) {
+	if (vi == v0) return faces0;
+	else if (vi == v1) return faces1;
+	else if (vi == v2) return faces2;
 	// bug!
 	else throw std::runtime_error("Invalid vertex index.");
 };
@@ -225,8 +223,8 @@ void Mesh::add_edge(MFacePtr face, int pv0, int pv1) {
 		              edge10->faces) {
 			if (MFacePtr otherface = _otherface.lock()) {
 				int other_pv2 = otherface->get_next_vertex(pv0);
-				face->add_adjacent_face(otherface, pv2);
-				otherface->add_adjacent_face(face, other_pv2);
+				face->get_adjacent_faces(pv2).push_back(otherface);
+				otherface->get_adjacent_faces(other_pv2).push_back(face);
 			};
 		};
 	};

@@ -193,22 +193,28 @@ BOOST_AUTO_TEST_CASE(fac_faces_test_2) {
 	BOOST_CHECK_EQUAL(f->faces2.size(), 0);
 }
 
-/* XXX todo: fix
-
-BOOST_AUTO_TEST_CASE(face_get_next_face_test_1) {
+BOOST_AUTO_TEST_CASE(face_get_adjacent_faces_test) {
 	// construct slightly more complicated mesh
 	Mesh m;
 	MFacePtr f0 = m.add_face(0, 1, 2);
-	MFacePtr f1 = m.add_face(2, 1, 3);
+	MFacePtr f1 = m.add_face(1, 3, 2);
 	MFacePtr f2 = m.add_face(2, 3, 4);
-	MFacePtr f3 = m.add_face(5, 3, 2);
-	MFacePtr f4 = m.add_face(2, 1, 9); // faces added earlier on get priority when the strip is built, this is to check for that
+	MFacePtr f3 = m.add_face(2, 5, 3);
+	MFacePtr f4 = m.add_face(1, 9, 2);
+
 	// check the function by doing a quick strip traversal
-	MFacePtr f = f0;
-	BOOST_CHECK_EQUAL(f0->get_next_face(1, 2), f1);
-	BOOST_CHECK_EQUAL(f1->get_next_face(2, 3), f2);
-	BOOST_CHECK_EQUAL(f2->get_next_face(3, 4), MFacePtr());
+	MFacePtr f = f0;                                            // 0 1 2
+	BOOST_CHECK_EQUAL(f0->get_adjacent_faces(0).size(), 2);
+	BOOST_CHECK_EQUAL(f0->get_adjacent_faces(0)[0].lock(), f1); // 1 3 2
+	BOOST_CHECK_EQUAL(f1->get_adjacent_faces(1).size(), 1);
+	BOOST_CHECK_EQUAL(f1->get_adjacent_faces(1)[0].lock(), f2); // 2 3 4
+	BOOST_CHECK_EQUAL(f2->get_adjacent_faces(2).size(), 0);
+
+	// alternative direction for strip
+	BOOST_CHECK_EQUAL(f0->get_adjacent_faces(0)[1].lock(), f4); // 1 9 2
 }
+
+/* XXX todo: fix
 
 BOOST_AUTO_TEST_CASE(face_get_next_face_test_2) {
 	MeshPtr m(new Mesh());

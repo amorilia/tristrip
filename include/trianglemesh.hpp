@@ -144,11 +144,8 @@ public:
 	//! Note: don't call directly! Use Mesh::add_face.
 	MFace(const Face & face);
 
-	//! Add adjacent face along edge opposite vi. The caller must
-	//! ensure that the faces share this edge and that the two
-	//! faces have opposite winding along it (this is *not*
-	//! checked).
-	void add_adjacent_face(MFacePtr face, int vi);
+	//! Get list of adjacent faces along edge opposite vertex vi.
+	Faces & get_adjacent_faces(int vi);
 
 	//! Dump to std::cout (e.g. for debugging).
 	void dump() const;
