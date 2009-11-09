@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_CASE(fac_faces_test_2) {
 	BOOST_CHECK_EQUAL(f->faces2.size(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(face_get_adjacent_faces_test) {
+BOOST_AUTO_TEST_CASE(face_get_adjacent_faces_test_0) {
 	// construct slightly more complicated mesh
 	Mesh m;
 	MFacePtr f0 = m.add_face(0, 1, 2);
@@ -214,18 +214,15 @@ BOOST_AUTO_TEST_CASE(face_get_adjacent_faces_test) {
 	BOOST_CHECK_EQUAL(f0->get_adjacent_faces(0)[1].lock(), f4); // 1 9 2
 }
 
-/* XXX todo: fix
-
-BOOST_AUTO_TEST_CASE(face_get_next_face_test_2) {
+BOOST_AUTO_TEST_CASE(face_get_adjacent_faces_test_1) {
 	MeshPtr m(new Mesh());
 	MFacePtr f1 = m->add_face(5, 3, 2);
 	MFacePtr f2 = m->add_face(1, 0, 8);
 	MFacePtr f3 = m->add_face(0, 8, 9); // bad orientation!
 	MFacePtr f4 = m->add_face(8, 0, 10);
-	BOOST_CHECK_EQUAL(f2->get_next_face(0, 8), f4);
+	BOOST_CHECK_EQUAL(f2->get_adjacent_faces(1).size(), 1);
+	BOOST_CHECK_EQUAL(f2->get_adjacent_faces(1)[0].lock(), f4);
 }
-
-*/
 
 BOOST_AUTO_TEST_CASE(mesh_edgemap_test) {
 	Edge edge_index1(0, 1);
