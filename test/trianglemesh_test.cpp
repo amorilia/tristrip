@@ -225,6 +225,8 @@ BOOST_AUTO_TEST_CASE(face_get_next_face_test_2) {
 	BOOST_CHECK_EQUAL(f2->get_next_face(0, 8), f4);
 }
 
+*/
+
 BOOST_AUTO_TEST_CASE(mesh_edgemap_test) {
 	Edge edge_index1(0, 1);
 	Edge edge_index2(0, 1);
@@ -235,15 +237,13 @@ BOOST_AUTO_TEST_CASE(mesh_edgemap_test) {
 	edges[edge_index1] = edge;
 	Mesh::EdgeMap::const_iterator edge_iter;
 	edge_iter = edges.find(edge_index1);
-	BOOST_CHECK_EQUAL(edge_iter->second.lock(), edge);
+	BOOST_CHECK_EQUAL(edge_iter->second, edge);
 	edge_iter = edges.find(edge_index2);
-	BOOST_CHECK_EQUAL(edge_iter->second.lock(), edge);
+	BOOST_CHECK_EQUAL(edge_iter->second, edge);
 	edge_iter = edges.find(edge_index3);
-	BOOST_CHECK_EQUAL(edge_iter->second.lock(), edge);
+	BOOST_CHECK(edge_iter == edges.end());
 	edge_iter = edges.find(edge_index4);
 	BOOST_CHECK(edge_iter == edges.end());
 }
-
-*/
 
 BOOST_AUTO_TEST_SUITE_END()
