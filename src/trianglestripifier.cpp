@@ -280,28 +280,49 @@ void Experiment::build_adjacent(TriangleStripPtr strip) {
 	//
 	// and so on...
 
-	std::deque<int>::const_iterator vertex_iter = strip->vertices.begin();
-	int othervertex = *vertex_iter++;
-	int oppositevertex = *vertex_iter++;
-	bool winding = strip->reversed; // initial winding
-	BOOST_FOREACH(MFacePtr face, strip->faces) {
-		MFacePtr otherface = strip->get_unmarked_adjacent_face(face, oppositevertex);
+	int num_faces = strip->faces.size();
+	int face_index;
+	int othervertex;
+	int oppositevertex;
+	int nextvertex;
+	int i = num_faces / 2;
+	int j = i + 1;
+	MFacePtr face;
+	MFacePtr otherface;
+	while ((i >= 0) && (j < num_faces)) {
+		// try forward face
+		face_index = j;
+		othervertex = strip->vertices[face_index];
+		oppositevertex = strip->vertices[face_index + 1];
+		nextvertex = strip->vertices[face_index + 2];
+		face = strip->faces[face_index];
+		otherface = strip->get_unmarked_adjacent_face(face, oppositevertex);
+		if (!otherface) {
+			// try backward face
+			face_index = i;
+			othervertex = strip->vertices[face_index];
+			oppositevertex = strip->vertices[face_index + 1];
+			nextvertex = strip->vertices[face_index + 2];
+			face = strip->faces[face_index];
+			otherface = strip->get_unmarked_adjacent_face(face, oppositevertex);
+		};
 		if (otherface) {
+			bool winding = strip->reversed; // initial winding
+			if (face_index & 1) winding = !winding;
 			// create and build new strip
 			TriangleStripPtr otherstrip(new TriangleStrip(experiment_id));
 			if (winding) {
 				otherstrip->build(othervertex, otherface);
 			} else {
-				otherstrip->build(*vertex_iter, otherface);
+				otherstrip->build(nextvertex, otherface);
 			};
 			strips.push_back(otherstrip);
-			// build adjacent strips to the strip we just found
+			// build adjacent strip to the strip we just found
 			build_adjacent(otherstrip);
+			break;
 		};
-		// prepare for next face
-		othervertex = oppositevertex;
-		oppositevertex = *vertex_iter++;
-		winding = !winding;
+		i--;
+		j++;
 	}
 }
 
