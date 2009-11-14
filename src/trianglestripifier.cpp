@@ -264,6 +264,40 @@ void Experiment::build() {
 	build_adjacent(strip);
 };
 
+void Experiment::build_adjacent(TriangleStripPtr strip) {
+	//               zzzzzzzzzzzzzz
+	// otherface:      /         \
+	//            othervertex---*vertexiter-yyyyyyyy
+	// strip:           \        /      \   /    \
+	//                oppositevertex----xxxxxxx----......
+	//
+	//            .........---oppositevertex-yyyyyyyy
+	// strip:           \        /      \     /    \
+	//                othervertex----*vertexiter----......
+	// otherface:                \       /
+	//                         zzzzzzzzzzzzzz
+	//
+	// and so on...
+
+	std::list<int>::const_iterator vertex_iter = strip->vertices.begin();
+	int othervertex = *vertex_iter++;
+	int oppositevertex = *vertex_iter++;
+	BOOST_FOREACH(MFacePtr face, strip->faces) {
+		MFacePtr otherface = strip->get_unmarked_adjacent_face(face, oppositevertex);
+		if (otherface) {
+			// create and build new strip
+			TriangleStripPtr otherstrip(new TriangleStrip(experiment_id));
+			otherstrip->build(othervertex, otherface);
+			strips.push_back(otherstrip);
+			// build adjacent strips to the strip we just found
+			build_adjacent(otherstrip);
+		};
+		// prepare for next face
+		othervertex = oppositevertex;
+		oppositevertex = *vertex_iter++;
+	}
+}
+
 int Experiment::NUM_EXPERIMENTS = 0;
 
 ExperimentSelector::ExperimentSelector(int _num_samples, int _min_strip_length)
@@ -313,40 +347,6 @@ bool TriangleStripifier::find_good_reset_point() {
 	// we have exhausted all the faces
 	return false;
 };
-
-void Experiment::build_adjacent(TriangleStripPtr strip) {
-	//               zzzzzzzzzzzzzz
-	// otherface:      /         \
-	//            othervertex---*vertexiter-yyyyyyyy
-	// strip:           \        /      \   /    \
-	//                oppositevertex----xxxxxxx----......
-	//
-	//            .........---oppositevertex-yyyyyyyy
-	// strip:           \        /      \     /    \
-	//                othervertex----*vertexiter----......
-	// otherface:                \       /
-	//                         zzzzzzzzzzzzzz
-	//
-	// and so on...
-
-	std::list<int>::const_iterator vertex_iter = strip->vertices.begin();
-	int othervertex = *vertex_iter++;
-	int oppositevertex = *vertex_iter++;
-	BOOST_FOREACH(MFacePtr face, strip->faces) {
-		MFacePtr otherface = strip->get_unmarked_adjacent_face(face, oppositevertex);
-		if (otherface) {
-			// create and build new strip
-			TriangleStripPtr otherstrip(new TriangleStrip(experiment_id));
-			otherstrip->build(othervertex, otherface);
-			strips.push_back(otherstrip);
-			// build adjacent strips to the strip we just found
-			build_adjacent(otherstrip);
-		};
-		// prepare for next face
-		othervertex = oppositevertex;
-		oppositevertex = *vertex_iter++;
-	}
-}
 
 std::list<TriangleStripPtr> TriangleStripifier::find_all_strips() {
 	std::list<TriangleStripPtr> all_strips;
