@@ -62,7 +62,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 TriangleStrip::TriangleStrip(int _strip_id, int _experiment_id)
-		: faces(), strip(), reversed(false),
+		: faces(), vertices(), reversed(false),
 		strip_id(_strip_id), experiment_id(_experiment_id) {};
 
 bool TriangleStrip::has_face(MFacePtr face) {
@@ -148,7 +148,7 @@ void TriangleStrip::traverse_faces(int start_vertex, MFacePtr start_face,
 				// pv0-pv2            x--pv2
 				pv0 = pv1;
 				pv1 = next_face->get_next_vertex(pv0);
-				strip.push_back(pv1);
+				vertices.push_back(pv1);
 				faces.push_back(next_face);
 			} else {
 				// x--pv2           pv2-pv0
@@ -156,7 +156,7 @@ void TriangleStrip::traverse_faces(int start_vertex, MFacePtr start_face,
 				//  pv1-pv0           pv1--x
 				pv0 = pv2;
 				pv2 = next_face->get_next_vertex(pv1);
-				strip.push_front(pv2);
+				vertices.push_front(pv2);
 				reversed = !reversed; // swap winding
 				faces.push_front(next_face);
 			}
@@ -167,7 +167,7 @@ void TriangleStrip::traverse_faces(int start_vertex, MFacePtr start_face,
 				// x--pv2--x          x--pv0-pv2
 				pv0 = pv2;
 				pv2 = next_face->get_next_vertex(pv1);
-				strip.push_back(pv2);
+				vertices.push_back(pv2);
 				faces.push_back(next_face);
 			} else {
 				//  pv2-pv0             pv2--x
@@ -175,7 +175,7 @@ void TriangleStrip::traverse_faces(int start_vertex, MFacePtr start_face,
 				// x--pv1--x          pv1-pv0--x
 				pv0 = pv1;
 				pv1 = next_face->get_next_vertex(pv0);
-				strip.push_front(pv1);
+				vertices.push_front(pv1);
 				reversed = !reversed; // swap winding
 				faces.push_front(next_face);
 			}
@@ -197,7 +197,7 @@ void TriangleStrip::traverse_faces(int start_vertex, MFacePtr start_face,
 
 void TriangleStrip::build(int start_vertex, MFacePtr start_face) {
 	faces.clear();
-	strip.clear();
+	vertices.clear();
 	// find start indices
 	int v0 = start_vertex;
 	int v1 = start_face->get_next_vertex(v0);
@@ -205,9 +205,9 @@ void TriangleStrip::build(int start_vertex, MFacePtr start_face) {
 	// mark start face and add it to faces and strip
 	mark_face(start_face);
 	faces.push_back(start_face);
-	strip.push_back(v0);
-	strip.push_back(v1);
-	strip.push_back(v2);
+	vertices.push_back(v0);
+	vertices.push_back(v1);
+	vertices.push_back(v2);
 	// build strip by traversing faces forward, then backward
 	traverse_faces(v0, start_face, true);
 	traverse_faces(v2, start_face, false);
@@ -222,28 +222,28 @@ void TriangleStrip::commit() {
 std::list<int> TriangleStrip::get_strip() {
 	std::list<int> result;
 	if (reversed) {
-		if (strip.size() & 1) {
+		if (vertices.size() & 1) {
 			// odd length: change winding by reversing
-			result = strip;
+			result = vertices;
 			result.reverse();
-		} else if (strip.size() == 4) {
+		} else if (vertices.size() == 4) {
 			// length 4: we can change winding without
 			// appending a vertex
-			std::vector<int> strip_vec(4);
-			std::copy(strip.begin(), strip.end(),
-			          strip_vec.begin());
-			result.push_back(strip_vec[0]);
-			result.push_back(strip_vec[2]);
-			result.push_back(strip_vec[1]);
-			result.push_back(strip_vec[3]);
+			std::vector<int> vertices_vec(4);
+			std::copy(vertices.begin(), vertices.end(),
+			          vertices_vec.begin());
+			result.push_back(vertices_vec[0]);
+			result.push_back(vertices_vec[2]);
+			result.push_back(vertices_vec[1]);
+			result.push_back(vertices_vec[3]);
 		} else {
 			// all other cases: append duplicate vertex to
 			// front
-			result = strip;
-			result.push_front(strip.front());
+			result = vertices;
+			result.push_front(vertices.front());
 		};
 	} else {
-		result = strip;
+		result = vertices;
 	};
 	return result;
 }

@@ -68,8 +68,9 @@ public:
 	// a vector because we need push_front).
 	std::list<MFacePtr> faces;
 
-	//! Identical to faces, but written as a strip.
-	std::list<int> strip;
+	//! Identical to faces, but written as a strip (whose winding
+	//! determined by reversed).
+	std::list<int> vertices;
 
 	//! Winding of strip: false means that strip can be used as
 	//! such, true means that winding is reversed. Winding can be
