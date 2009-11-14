@@ -60,7 +60,7 @@ std::list<std::list<int> > stripify(const std::list<std::list<int> > & triangles
 	// extract and return triangle strips
 	std::list<std::list<int> > result;
 	BOOST_FOREACH(TriangleStripPtr strip, strips) {
-		result.push_back(strip->strip);
+		result.push_back(strip->get_strip());
 	};
 	return result;
 };

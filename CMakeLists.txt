@@ -22,12 +22,12 @@ include_directories(
 add_library(tristrip SHARED
     src/trianglemesh.cpp
     src/trianglestripifier.cpp
-#    src/tristrip.cpp
+    src/tristrip.cpp
 )
 target_link_libraries(tristrip)
 
 # build the python bindings
-#add_subdirectory(python)
+add_subdirectory(python)
 
 # build the tests
 enable_testing()
