@@ -60,11 +60,14 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_0) {
 		std::list<MFacePtr>::const_iterator j = t.faces.begin();
 		BOOST_CHECK_EQUAL(*j++, f0);
 		BOOST_CHECK(j == t.faces.end());
+		// not reversed, so...
+		BOOST_CHECK(t.get_strip() == t.vertices);
 	};
 }
 
 BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 	// another simple test
+        // also tests get_strip on strips of length 4
 	Mesh m;
 	MFacePtr f0 = m.add_face(0, 1, 2);
 	MFacePtr f1 = m.add_face(2, 1, 3);
@@ -82,6 +85,8 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 		BOOST_CHECK_EQUAL(*j++, f0);
 		BOOST_CHECK_EQUAL(*j++, f1);
 		BOOST_CHECK(j == t.faces.end());
+		// not reversed, so...
+		BOOST_CHECK(t.get_strip() == t.vertices);
 	}
 	{
 		TriangleStrip t(2, 2);
@@ -97,6 +102,13 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 		BOOST_CHECK_EQUAL(*j++, f1);
 		BOOST_CHECK_EQUAL(*j++, f0);
 		BOOST_CHECK(j == t.faces.end());
+		std::list<int> strip = t.get_strip();
+		i = strip.begin();
+		BOOST_CHECK_EQUAL(*i++, 3);
+		BOOST_CHECK_EQUAL(*i++, 2);
+		BOOST_CHECK_EQUAL(*i++, 1);
+		BOOST_CHECK_EQUAL(*i++, 0);
+		BOOST_CHECK(i == strip.end());
 	}
 	{
 		TriangleStrip t(3, 3);
@@ -112,6 +124,13 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 		BOOST_CHECK_EQUAL(*j++, f0);
 		BOOST_CHECK_EQUAL(*j++, f1);
 		BOOST_CHECK(j == t.faces.end());
+		std::list<int> strip = t.get_strip();
+		i = strip.begin();
+		BOOST_CHECK_EQUAL(*i++, 0);
+		BOOST_CHECK_EQUAL(*i++, 1);
+		BOOST_CHECK_EQUAL(*i++, 2);
+		BOOST_CHECK_EQUAL(*i++, 3);
+		BOOST_CHECK(i == strip.end());
 	}
 	{
 		TriangleStrip t(4, 4);
@@ -127,14 +146,21 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 		BOOST_CHECK_EQUAL(*j++, f1);
 		BOOST_CHECK_EQUAL(*j++, f0);
 		BOOST_CHECK(j == t.faces.end());
+		// not reversed, so...
+		BOOST_CHECK(t.get_strip() == t.vertices);
 	}
 }
 
 BOOST_AUTO_TEST_CASE(triangle_strip_build_test_2) {
 	// checks that extra vertex is appended to fix winding
+        // 1---3---5
+        //  \ / \ / \
+        //   2---4---6
 	Mesh m;
 	MFacePtr f0 = m.add_face(1, 3, 2);
 	MFacePtr f1 = m.add_face(2, 3, 4);
+	MFacePtr f2 = m.add_face(4, 3, 5);
+	MFacePtr f3 = m.add_face(4, 5, 6);
 	TriangleStrip t(1, 1);
 	t.build(2, f1);
 	BOOST_CHECK_EQUAL(t.reversed, true);
@@ -143,7 +169,19 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_2) {
 	BOOST_CHECK_EQUAL(*i++, 2);
 	BOOST_CHECK_EQUAL(*i++, 3);
 	BOOST_CHECK_EQUAL(*i++, 4);
+	BOOST_CHECK_EQUAL(*i++, 5);
+	BOOST_CHECK_EQUAL(*i++, 6);
 	BOOST_CHECK(i == t.vertices.end());
+	std::list<int> strip = t.get_strip();
+	i = strip.begin();
+	BOOST_CHECK_EQUAL(*i++, 1); // extra vertex
+	BOOST_CHECK_EQUAL(*i++, 1);
+	BOOST_CHECK_EQUAL(*i++, 2);
+	BOOST_CHECK_EQUAL(*i++, 3);
+	BOOST_CHECK_EQUAL(*i++, 4);
+	BOOST_CHECK_EQUAL(*i++, 5);
+	BOOST_CHECK_EQUAL(*i++, 6);
+	BOOST_CHECK(i == strip.end());
 }
 
 BOOST_AUTO_TEST_CASE(triangle_strip_build_test_3) {
@@ -162,6 +200,14 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_3) {
 	BOOST_CHECK_EQUAL(*i++, 4);
 	BOOST_CHECK_EQUAL(*i++, 5);
 	BOOST_CHECK(i == t.vertices.end());
+	std::list<int> strip = t.get_strip();
+	i = strip.begin();
+	BOOST_CHECK_EQUAL(*i++, 5); // reversed order
+	BOOST_CHECK_EQUAL(*i++, 4);
+	BOOST_CHECK_EQUAL(*i++, 3);
+	BOOST_CHECK_EQUAL(*i++, 2);
+	BOOST_CHECK_EQUAL(*i++, 1);
+	BOOST_CHECK(i == strip.end());
 }
 
 BOOST_AUTO_TEST_CASE(triangle_strip_build_test_4) {
@@ -199,6 +245,8 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_4) {
 	BOOST_CHECK_EQUAL(*j++, f0);
 	BOOST_CHECK_EQUAL(*j++, f8);
 	BOOST_CHECK(j == t.faces.end());
+	// not reversed, so...
+	BOOST_CHECK(t.get_strip() == t.vertices);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
