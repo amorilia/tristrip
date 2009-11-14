@@ -256,7 +256,10 @@ void Experiment::build() {
 	if (num_faces >= 4) {
 		build_adjacent(strip, num_faces / 2);
 		build_adjacent(strip, num_faces / 2 + 1); // again! to get the other side
-	};
+	} else if (num_faces == 3) {
+		// in this case, only try along the long edge of the strip
+		build_adjacent(strip, 1);
+	}
 };
 
 bool Experiment::build_adjacent(TriangleStripPtr strip, int face_index) {
