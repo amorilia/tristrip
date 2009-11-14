@@ -147,7 +147,8 @@ public:
 	MFacePtr face;
 	int experiment_id;
 
-	//! Number of experiments declared. Used to determine next experiment id.
+	//! Number of experiments declared. Used to determine next
+	//! experiment id.
 	static int NUM_EXPERIMENTS; // Initialized to zero in cpp file.
 
 	Experiment(int _vertex, MFacePtr _face);
@@ -156,7 +157,7 @@ public:
 	void build();
 
 	//! Build strips adjacent to given strip, and add them to the
-	//! experiment.
+	//! experiment. This is a helper function used by build.
 	void build_adjacent(TriangleStripPtr strip);
 };
 
@@ -188,7 +189,8 @@ public:
 	//! experiment beats current experiment.
 	void update_score(ExperimentPtr experiment);
 
-	//! Remove best experiment, to start a fresh sequence of experiments.
+	//! Remove best experiment, to start a fresh sequence of
+	//! experiments.
 	void clear();
 };
 

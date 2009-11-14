@@ -282,12 +282,17 @@ void Experiment::build_adjacent(TriangleStripPtr strip) {
 	std::list<int>::const_iterator vertex_iter = strip->vertices.begin();
 	int othervertex = *vertex_iter++;
 	int oppositevertex = *vertex_iter++;
+	bool winding = strip->reversed; // initial winding
 	BOOST_FOREACH(MFacePtr face, strip->faces) {
 		MFacePtr otherface = strip->get_unmarked_adjacent_face(face, oppositevertex);
 		if (otherface) {
 			// create and build new strip
 			TriangleStripPtr otherstrip(new TriangleStrip(experiment_id));
-			otherstrip->build(othervertex, otherface);
+			if (winding) {
+				otherstrip->build(othervertex, otherface);
+			} else {
+				otherstrip->build(*vertex_iter, otherface);
+			};
 			strips.push_back(otherstrip);
 			// build adjacent strips to the strip we just found
 			build_adjacent(otherstrip);
@@ -295,6 +300,7 @@ void Experiment::build_adjacent(TriangleStripPtr strip) {
 		// prepare for next face
 		othervertex = oppositevertex;
 		oppositevertex = *vertex_iter++;
+		winding = !winding;
 	}
 }
 

@@ -73,9 +73,7 @@ BOOST_AUTO_TEST_CASE(find_start_face_good_reset_point_test) {
 	BOOST_CHECK_EQUAL(t.find_good_reset_point(), false);
 }
 
-/*
-
-BOOST_AUTO_TEST_CASE(triangle_stripifier_find_traversal) {
+BOOST_AUTO_TEST_CASE(experiment_build) {
 	MeshPtr m(new Mesh());
 
 	// first strip
@@ -102,36 +100,42 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_traversal) {
 	m->add_face(8, 31, 32); // in strip
 	m->add_face(31, 11, 33); // in strip
 
-	// build strip
-	TriangleStripifier t(m);
-	TriangleStripPtr s1(new TriangleStrip(s1_face, 0, 1));
-	s1->build();
-	std::list<int>::const_iterator i = s1->strip.begin();
+	// build experiment
+	ExperimentPtr exp(new Experiment(0, s1_face));
+	exp->build();
+
+	std::list<TriangleStripPtr>::const_iterator t = exp->strips.begin();
+
+	std::list<int> strip = (*t)->get_strip();
+	std::list<int>::const_iterator i = strip.begin();
 
 	// ... extra check, could omit this
 	BOOST_CHECK_EQUAL(*i++, 11);
-	BOOST_CHECK_EQUAL(*i++, 11);
-	BOOST_CHECK_EQUAL(*i++, 10);
-	BOOST_CHECK_EQUAL(*i++, 8);
-	BOOST_CHECK_EQUAL(*i++, 0);
-	BOOST_CHECK_EQUAL(*i++, 1);
-	BOOST_CHECK_EQUAL(*i++, 2);
-	BOOST_CHECK_EQUAL(*i++, 7);
 	BOOST_CHECK_EQUAL(*i++, 4);
+	BOOST_CHECK_EQUAL(*i++, 7);
+	BOOST_CHECK_EQUAL(*i++, 2);
+	BOOST_CHECK_EQUAL(*i++, 1);
+	BOOST_CHECK_EQUAL(*i++, 0);
+	BOOST_CHECK_EQUAL(*i++, 8);
+	BOOST_CHECK_EQUAL(*i++, 10);
 	BOOST_CHECK_EQUAL(*i++, 11);
-	BOOST_CHECK(i == s1->strip.end());
-
-	// check traversal finding
-	MFacePtr f;
-	int v;
-	BOOST_CHECK_EQUAL(t.find_traversal(s1, f, v), true);
-	BOOST_CHECK_EQUAL(f, s2_face);
-	BOOST_CHECK_EQUAL(v, 2);
+	BOOST_CHECK(i == strip.end());
 
 	// check parallel strip
-	TriangleStripPtr s2(new TriangleStrip(f, v, 2));
-	s2->build();
-	i = s2->strip.begin();
+	t++;
+	strip = (*t)->get_strip();
+	i = strip.begin();
+	BOOST_CHECK_EQUAL(*i++, 32);
+	BOOST_CHECK_EQUAL(*i++, 8);
+	BOOST_CHECK_EQUAL(*i++, 31);
+	BOOST_CHECK_EQUAL(*i++, 11);
+	BOOST_CHECK_EQUAL(*i++, 33);
+	BOOST_CHECK(i == strip.end());
+
+	// check parallel strip
+	t++;
+	strip = (*t)->get_strip();
+	i = strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 4);
 	BOOST_CHECK_EQUAL(*i++, 22);
 	BOOST_CHECK_EQUAL(*i++, 2);
@@ -139,23 +143,14 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_traversal) {
 	BOOST_CHECK_EQUAL(*i++, 0);
 	BOOST_CHECK_EQUAL(*i++, 24);
 	BOOST_CHECK_EQUAL(*i++, 9);
-	BOOST_CHECK(i == s2->strip.end());
+	BOOST_CHECK(i == strip.end());
 
-	// find remaining traversal
-	BOOST_CHECK_EQUAL(t.find_traversal(s1, f, v), true);
-
-	// check parallel strip
-	TriangleStripPtr s3(new TriangleStrip(f, v, 3));
-	s3->build();
-	i = s3->strip.begin();
-	BOOST_CHECK_EQUAL(*i++, 33);
-	BOOST_CHECK_EQUAL(*i++, 33);
-	BOOST_CHECK_EQUAL(*i++, 11);
-	BOOST_CHECK_EQUAL(*i++, 31);
-	BOOST_CHECK_EQUAL(*i++, 8);
-	BOOST_CHECK_EQUAL(*i++, 32);
-	BOOST_CHECK(i == s3->strip.end());
+	// no more strips
+	t++;
+	BOOST_CHECK(t == exp->strips.end());
 }
+
+/*
 
 BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips) {
 	MeshPtr m(new Mesh());
