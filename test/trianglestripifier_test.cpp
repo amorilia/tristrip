@@ -150,8 +150,6 @@ BOOST_AUTO_TEST_CASE(experiment_build) {
 	BOOST_CHECK(t == exp->strips.end());
 }
 
-/*
-
 BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips) {
 	MeshPtr m(new Mesh());
 
@@ -180,10 +178,12 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips) {
 	m->add_face(31, 11, 33); // in strip
 
 	// find strips
-	TriangleStripifier t(m);
-	std::list<TriangleStripPtr> strips = t.find_all_strips();
-	std::list<TriangleStripPtr>::const_iterator strip = strips.begin();
-	std::list<int>::const_iterator i = (*strip)->strip.begin();
+	TriangleStripifier ts(m);
+	std::list<TriangleStripPtr> all_strips = ts.find_all_strips();
+	std::list<TriangleStripPtr>::const_iterator t = all_strips.begin();
+
+	std::list<int> strip = (*t)->get_strip();
+	std::list<int>::const_iterator i = strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 11);
 	BOOST_CHECK_EQUAL(*i++, 4);
 	BOOST_CHECK_EQUAL(*i++, 7);
@@ -193,10 +193,11 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips) {
 	BOOST_CHECK_EQUAL(*i++, 8);
 	BOOST_CHECK_EQUAL(*i++, 10);
 	BOOST_CHECK_EQUAL(*i++, 11);
-	BOOST_CHECK(i == (*strip)->strip.end());
+	BOOST_CHECK(i == strip.end());
 
-	strip++;
-	i = (*strip)->strip.begin();
+	t++;
+	strip = (*t)->get_strip();
+	i = strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 4);
 	BOOST_CHECK_EQUAL(*i++, 22);
 	BOOST_CHECK_EQUAL(*i++, 2);
@@ -204,35 +205,36 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips) {
 	BOOST_CHECK_EQUAL(*i++, 0);
 	BOOST_CHECK_EQUAL(*i++, 24);
 	BOOST_CHECK_EQUAL(*i++, 9);
-	BOOST_CHECK(i == (*strip)->strip.end());
+	BOOST_CHECK(i == strip.end());
 
-	strip++;
-	i = (*strip)->strip.begin();
+	t++;
+	strip = (*t)->get_strip();
+	i = strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 32);
 	BOOST_CHECK_EQUAL(*i++, 8);
 	BOOST_CHECK_EQUAL(*i++, 31);
 	BOOST_CHECK_EQUAL(*i++, 11);
 	BOOST_CHECK_EQUAL(*i++, 33);
-	BOOST_CHECK(i == (*strip)->strip.end());
+	BOOST_CHECK(i == strip.end());
 
-	strip++;
-	i = (*strip)->strip.begin();
+	t++;
+	strip = (*t)->get_strip();
+	i = strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 3);
 	BOOST_CHECK_EQUAL(*i++, 2);
 	BOOST_CHECK_EQUAL(*i++, 5);
-	BOOST_CHECK(i == (*strip)->strip.end());
+	BOOST_CHECK(i == strip.end());
 
-	strip++;
-	i = (*strip)->strip.begin();
+	t++;
+	strip = (*t)->get_strip();
+	i = strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 9);
 	BOOST_CHECK_EQUAL(*i++, 0);
 	BOOST_CHECK_EQUAL(*i++, 8);
-	BOOST_CHECK(i == (*strip)->strip.end());
+	BOOST_CHECK(i == strip.end());
 
-	strip++;
-	BOOST_CHECK(strip == strips.end());
+	t++;
+	BOOST_CHECK(t == all_strips.end());
 }
-
-*/
 
 BOOST_AUTO_TEST_SUITE_END()
