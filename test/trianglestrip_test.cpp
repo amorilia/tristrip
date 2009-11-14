@@ -43,7 +43,40 @@ POSSIBILITY OF SUCH DAMAGE.
 
 BOOST_AUTO_TEST_SUITE(triangle_strip_test_suite)
 
-BOOST_AUTO_TEST_CASE(triangle_strip_build_test) {
+BOOST_AUTO_TEST_CASE(triangle_strip_build_test_0) {
+	// checks that extra vertex is appended to fix winding
+	Mesh m;
+	MFacePtr f0 = m.add_face(1, 3, 2);
+	MFacePtr f1 = m.add_face(2, 3, 4);
+	TriangleStrip t(f1, 2);
+	t.build();
+	std::list<int>::const_iterator i = t.strip.begin();
+	BOOST_CHECK_EQUAL(*i++, 1);
+	BOOST_CHECK_EQUAL(*i++, 1);
+	BOOST_CHECK_EQUAL(*i++, 2);
+	BOOST_CHECK_EQUAL(*i++, 3);
+	BOOST_CHECK_EQUAL(*i++, 4);
+	BOOST_CHECK(i == t.strip.end());
+}
+
+BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
+	// checks that strip is reversed to fix winding
+	Mesh m;
+	MFacePtr f0 = m.add_face(1, 3, 2);
+	MFacePtr f1 = m.add_face(2, 3, 4);
+	MFacePtr f2 = m.add_face(3, 5, 4);
+	TriangleStrip t(f1, 2);
+	t.build();
+	std::list<int>::const_iterator i = t.strip.begin();
+	BOOST_CHECK_EQUAL(*i++, 5);
+	BOOST_CHECK_EQUAL(*i++, 4);
+	BOOST_CHECK_EQUAL(*i++, 3);
+	BOOST_CHECK_EQUAL(*i++, 2);
+	BOOST_CHECK_EQUAL(*i++, 1);
+	BOOST_CHECK(i == t.strip.end());
+}
+
+BOOST_AUTO_TEST_CASE(triangle_strip_build_test_2) {
 	// construct slightly more complicated mesh
 	Mesh m;
 	MFacePtr f0 = m.add_face(0, 1, 2);
@@ -54,12 +87,11 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test) {
 	TriangleStrip t(f1, 7);
 	t.build();
 	std::list<int>::const_iterator i = t.strip.begin();
-	BOOST_CHECK_EQUAL(*i++, 4);
-	BOOST_CHECK_EQUAL(*i++, 4);
-	BOOST_CHECK_EQUAL(*i++, 7);
-	BOOST_CHECK_EQUAL(*i++, 2);
-	BOOST_CHECK_EQUAL(*i++, 1);
 	BOOST_CHECK_EQUAL(*i++, 0);
+	BOOST_CHECK_EQUAL(*i++, 1);
+	BOOST_CHECK_EQUAL(*i++, 2);
+	BOOST_CHECK_EQUAL(*i++, 7);
+	BOOST_CHECK_EQUAL(*i++, 4);
 	BOOST_CHECK(i == t.strip.end());
 	std::list<MFacePtr>::const_iterator j = t.faces.begin();
 	BOOST_CHECK_EQUAL(*j++, f2);

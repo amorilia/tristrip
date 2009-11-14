@@ -215,8 +215,16 @@ void TriangleStrip::build() {
 	// so we keep track of that (to get winding right in the end)
 	traverse_faces(v0, true);
 	int count = traverse_faces(v2, false);
-	// fix winding by adding degenerate triangle to front, if needed
-	if (count & 1) strip.push_front(strip.front());
+	// if needed, fix winding by adding degenerate triangle to
+	// front, or by reversing the strip (whichever is most
+	// efficient)
+	if (count & 1) {
+		if (strip.size() & 1) {
+			strip.reverse();
+		} else {
+			strip.push_front(strip.front());
+		};
+	}
 	// XXX debug
 	assert(start_face == *start_face_iter);
 };
@@ -231,6 +239,8 @@ void TriangleStrip::commit() {
 // face traversal.
 
 int TriangleStrip::NUM_STRIPS = 0;
+
+/*
 
 ExperimentSelector::ExperimentSelector(int _num_samples, int _min_strip_length)
 		: num_samples(_num_samples), min_strip_length(_min_strip_length),
@@ -412,3 +422,5 @@ std::list<TriangleStripPtr> TriangleStripifier::find_all_strips() {
 		best_experiment.clear();
 	}
 }
+
+*/

@@ -121,6 +121,8 @@ public:
 
 typedef boost::shared_ptr<TriangleStrip> TriangleStripPtr;
 
+/*
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ ExperimentSelector
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -203,3 +205,4 @@ public:
 	std::list<TriangleStripPtr> find_all_strips();
 };
 
+*/
