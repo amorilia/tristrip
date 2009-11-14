@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_0) {
 	MFacePtr f0 = m.add_face(0, 1, 2);
 	int vertices[] = {0, 1, 2};
 	BOOST_FOREACH(int pv0, vertices) {
-		TriangleStrip t(pv0, pv0); // using vertex index as strip id and experiment id
+		TriangleStrip t(pv0); // using vertex index as experiment id
 		t.build(pv0, f0);
 		BOOST_CHECK_EQUAL(t.reversed, false);
 		std::list<int>::const_iterator i = t.vertices.begin();
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 	MFacePtr f0 = m.add_face(0, 1, 2);
 	MFacePtr f1 = m.add_face(2, 1, 3);
 	{
-		TriangleStrip t(1, 1);
+		TriangleStrip t(1);
 		t.build(0, f0);
 		BOOST_CHECK_EQUAL(t.reversed, false);
 		std::list<int>::const_iterator i = t.vertices.begin();
@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 		BOOST_CHECK(t.get_strip() == t.vertices);
 	}
 	{
-		TriangleStrip t(2, 2);
+		TriangleStrip t(2);
 		t.build(1, f0);
 		BOOST_CHECK_EQUAL(t.reversed, true);
 		std::list<int>::const_iterator i = t.vertices.begin();
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 		BOOST_CHECK(i == strip.end());
 	}
 	{
-		TriangleStrip t(3, 3);
+		TriangleStrip t(3);
 		t.build(2, f1);
 		BOOST_CHECK_EQUAL(t.reversed, true);
 		std::list<int>::const_iterator i = t.vertices.begin();
@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 		BOOST_CHECK(i == strip.end());
 	}
 	{
-		TriangleStrip t(4, 4);
+		TriangleStrip t(4);
 		t.build(3, f1);
 		BOOST_CHECK_EQUAL(t.reversed, false);
 		std::list<int>::const_iterator i = t.vertices.begin();
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_2) {
 	MFacePtr f1 = m.add_face(2, 3, 4);
 	MFacePtr f2 = m.add_face(4, 3, 5);
 	MFacePtr f3 = m.add_face(4, 5, 6);
-	TriangleStrip t(1, 1);
+	TriangleStrip t(1);
 	t.build(2, f1);
 	BOOST_CHECK_EQUAL(t.reversed, true);
 	std::list<int>::const_iterator i = t.vertices.begin();
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_3) {
 	MFacePtr f0 = m.add_face(1, 3, 2);
 	MFacePtr f1 = m.add_face(2, 3, 4);
 	MFacePtr f2 = m.add_face(3, 5, 4);
-	TriangleStrip t(1, 1);
+	TriangleStrip t(1);
 	t.build(2, f1);
 	BOOST_CHECK_EQUAL(t.reversed, true);
 	std::list<int>::const_iterator i = t.vertices.begin();
@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_4) {
 	MFacePtr f6 = m.add_face(4, 10, 11);
 	MFacePtr f7 = m.add_face(11, 10, 12);
 	MFacePtr f8 = m.add_face(1, 0, 13);
-	TriangleStrip t(1, 1);
+	TriangleStrip t(1);
 	t.build(7, f1);
 	BOOST_CHECK_EQUAL(t.reversed, false);
 	std::list<int>::const_iterator i = t.vertices.begin();

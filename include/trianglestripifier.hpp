@@ -86,11 +86,14 @@ public:
 	//! Identifier of the strip.
 	int strip_id;
 
+	//! Number of strips declared. Used to determine next strip id.
+	static int NUM_STRIPS; // Initialized to zero in cpp file.
+
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Public Methods
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	TriangleStrip(int _strip_id, int _experiment_id);
+	TriangleStrip(int _experiment_id);
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Element Membership Tests
@@ -132,6 +135,35 @@ public:
 typedef boost::shared_ptr<TriangleStrip> TriangleStripPtr;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ Experiment
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+//! An experiment is a collection of adjacent strips, constructed from
+//! a single face and start vertex.
+class Experiment {
+public:
+	std::list<TriangleStripPtr> strips;
+	int vertex;
+	MFacePtr face;
+	int experiment_id;
+
+	//! Number of experiments declared. Used to determine next experiment id.
+	static int NUM_EXPERIMENTS; // Initialized to zero in cpp file.
+
+	Experiment(int _vertex, MFacePtr _face);
+
+	// XXX move this to TriangleStrip?
+	//! Find a face and edge to start a new strip, parallel to a
+	//! given strip.
+	bool find_traversal(TriangleStripPtr strip,
+	                    MFacePtr & otherface, int & othervertex);
+
+	void build();
+};
+
+typedef boost::shared_ptr<Experiment> ExperimentPtr;
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ ExperimentSelector
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -145,7 +177,7 @@ public:
 	float strip_len_heuristic;
 	int min_strip_length;
 	float best_score;
-	std::list<TriangleStripPtr> best_sample; // XXX rename to best_experiment?
+	ExperimentPtr best_sample; // XXX rename to best_experiment?
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Definitions
@@ -155,13 +187,11 @@ public:
 
 	//! Updates best experiment with given experiment, if given
 	//! experiment beats current experiment.
-	void update_score(std::list<TriangleStripPtr> experiment);
+	void update_score(ExperimentPtr experiment);
 
 	//! Remove best experiment, to start a fresh sequence of experiments.
 	void clear();
 };
-
-/*
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ TriangleStripifier
@@ -195,24 +225,8 @@ public:
 	//! when no more faces are left.
 	bool find_good_reset_point();
 
-	//! Looks for a face and vertex to start new strip exactly at the
-	//! given face in the strip. Returns true if one is found (otherface and
-	//! otheredge then have those where a new strip can start), returns
-	//! false if not (otheredge will be the edge of where to look next,
-	//! otherface ideally would be updated too but the implementation
-	//! currently doesn't do this...).
-	bool is_it_here(TriangleStripPtr strip,
-	                MFacePtr currentface, int currentvertex, bool is_even_face,
-	                MFacePtr & otherface, int & othervertex);
-
-	//! Find a face and edge to start a new strip, parallel to a
-	//! given strip.
-	bool find_traversal(TriangleStripPtr strip,
-	                    MFacePtr & otherface, int & othervertex);
-
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+	//! Find all strips.
 	std::list<TriangleStripPtr> find_all_strips();
 };
-
-*/

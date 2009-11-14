@@ -61,9 +61,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #endif
 
-TriangleStrip::TriangleStrip(int _strip_id, int _experiment_id)
+TriangleStrip::TriangleStrip(int _experiment_id)
 		: faces(), vertices(), reversed(false),
-		strip_id(_strip_id), experiment_id(_experiment_id) {};
+		strip_id(TriangleStrip::NUM_STRIPS++),
+		experiment_id(_experiment_id) {};
 
 bool TriangleStrip::has_face(MFacePtr face) {
 	// Note: original method was called FaceInStrip and
@@ -248,18 +249,50 @@ std::list<int> TriangleStrip::get_strip() {
 	return result;
 }
 
+int TriangleStrip::NUM_STRIPS = 0;
+
+Experiment::Experiment(int _vertex, MFacePtr _face)
+		: vertex(_vertex), face(_face),
+		experiment_id(Experiment::NUM_EXPERIMENTS++) {};
+
+void Experiment::build() {
+	// build initial strip
+	TriangleStripPtr strip(new TriangleStrip(experiment_id));
+	strip->build(vertex, face);
+	strips.push_back(strip);
+	// build adjacent strips
+	while (true) {
+		// See if there is a connecting face that we can move to
+		MFacePtr otherface;
+		int othervertex;
+		// XXX worth looking for more than one adjacent strip?
+		if (find_traversal(strip, otherface, othervertex)) {
+			// if so, add it to the list
+			strip = TriangleStripPtr(new TriangleStrip(experiment_id));
+			strip->build(othervertex, otherface);
+			strips.push_back(strip);
+		} else {
+			// Otherwise, we're done
+			break;
+		}
+	}
+};
+
+int Experiment::NUM_EXPERIMENTS = 0;
+
 ExperimentSelector::ExperimentSelector(int _num_samples, int _min_strip_length)
 		: num_samples(_num_samples), min_strip_length(_min_strip_length),
 		strip_len_heuristic(1.0), best_score(0.0), best_sample() {};
 
-void ExperimentSelector::update_score(std::list<TriangleStripPtr> experiment) {
+void ExperimentSelector::update_score(ExperimentPtr experiment) {
 	// score is average number of faces per strip
 	// XXX experiment with other scoring rules?
 	int stripsize = 0;
-	BOOST_FOREACH(TriangleStripPtr strip, experiment) {
+	BOOST_FOREACH(TriangleStripPtr strip, experiment->strips) {
 		stripsize += strip->faces.size();
 	};
-	float score = (strip_len_heuristic * stripsize) / experiment.size();
+	float score = ((strip_len_heuristic * stripsize)
+	               / experiment->strips.size());
 	if (score > best_score) {
 		best_score = score;
 		best_sample = experiment;
@@ -268,10 +301,8 @@ void ExperimentSelector::update_score(std::list<TriangleStripPtr> experiment) {
 
 void ExperimentSelector::clear() {
 	best_score = 0.0;
-	best_sample.clear();
+	best_sample.reset();
 }
-
-/*
 
 TriangleStripifier::TriangleStripifier(MeshPtr _mesh) : selector(10, 0), mesh(_mesh), start_face_iter(_mesh->faces.end()) {};
 
@@ -297,69 +328,32 @@ bool TriangleStripifier::find_good_reset_point() {
 	return false;
 };
 
-bool TriangleStripifier::is_it_here(TriangleStripPtr strip,
-                                    MFacePtr currentface, int currentvertex, bool is_even_face,
-                                    MFacePtr & otherface, int & othervertex) {
-	// Get the next vertices in this strip's walk
-	int v0 = currentvertex, v1, v2;
-	if (is_even_face) {
-		v1 = currentface->get_next_vertex(v0);
-		v2 = currentface->get_next_vertex(v1);
-	} else {
-		v2 = currentface->get_next_vertex(v0);
-		v1 = currentface->get_next_vertex(v2);
-	};
-	// Find the other face off the parallel edge
-	// Edge parallel to the strip is v0 to v2
-	otherface = currentface->get_next_face(v0, v2);
-	if (otherface && !strip->has_face(otherface) && !strip->is_face_marked(otherface)) {
-		// If we can use it, then do it!
-		if (is_even_face) {
-			othervertex = v2;
-		} else {
-			othervertex = v0;
-		};
-		return true;
-	} else {
-		// Keep looking...
-		othervertex = v1;
-		// XXX would like to set otherface to the next face too...
-		// XXX but faces aren't linked in the strip so cannot do
-		return false;
-	};
-}
+bool Experiment::find_traversal(TriangleStripPtr strip,
+                                MFacePtr & otherface,
+                                int & othervertex) {
+	//               zzzzzzzzzzzzzz
+	// otherface:      /         \
+	//            othervertex---*vertexiter-yyyyyyyy
+	// strip:           \        /      \   /    \
+	//                oppositevertex----xxxxxxx----......
+	//
+	//            .........---oppositevertex-yyyyyyyy
+	// strip:           \        /      \     /    \
+	//                othervertex----*vertexiter----......
+	// otherface:                \       /
+	//                         zzzzzzzzzzzzzz
+	//
+	// and so on...
 
-bool TriangleStripifier::find_traversal(TriangleStripPtr strip,
-                                        MFacePtr & otherface, int & othervertex) {
-	// forward search
-	// v0 v1 v2 ...
-	int currentvertex = strip->start_vertex;
-	bool is_even_face = true;
-	MFacePtr currentface; // = strip->start_face; // XXX set below
-	for (std::list<MFacePtr>::const_iterator iter = strip->start_face_iter;
-	        iter != strip->faces.end(); iter++) {
-		currentface = *iter;
-		if (is_it_here(strip, currentface, currentvertex, is_even_face,
-		               otherface, othervertex))
-			return true;
-		currentvertex = othervertex;
-		is_even_face = !is_even_face;
-		// XXX otherface not updated, otherwise would do "currentface = otherface"
-	};
-	// backward search
-	// v1 v0 ...
-	is_even_face = true;
-	currentvertex = strip->start_face->get_next_vertex(strip->start_vertex);
-	for (std::list<MFacePtr>::const_iterator iter = strip->start_face_iter;
-	        iter != strip->faces.begin();) {
-		currentface = *(--iter);
-		if (is_it_here(strip, currentface, currentvertex, is_even_face,
-		               otherface, othervertex))
-			return true;
-		currentvertex = othervertex;
-		is_even_face = !is_even_face;
-		// XXX otherface not updated, otherwise would do "currentface = otherface"
-	};
+	std::list<int>::const_iterator vertex_iter = strip->vertices.begin();
+	othervertex = *vertex_iter++;
+	int oppositevertex = *vertex_iter++;
+	BOOST_FOREACH(MFacePtr face, strip->faces) {
+		otherface = strip->get_unmarked_adjacent_face(face, oppositevertex);
+		if (otherface) return true;
+		othervertex = oppositevertex;
+		oppositevertex = *vertex_iter++;
+	}
 	// nothing found
 	return false;
 }
@@ -371,7 +365,7 @@ std::list<TriangleStripPtr> TriangleStripifier::find_all_strips() {
 
 	while (true) {
 		// note: one experiment is a collection of adjacent strips
-		std::list<std::list<TriangleStripPtr> > experiments;
+		std::list<ExperimentPtr> experiments;
 		std::set<Face> visited_reset_points;
 		for (int n_sample = 0; n_sample < selector.num_samples; n_sample++) {
 			// Get a good start face for an experiment
@@ -379,21 +373,21 @@ std::list<TriangleStripPtr> TriangleStripifier::find_all_strips() {
 				// done!
 				break;
 			};
-			MFacePtr exp_face = start_face_iter->second;
+			MFacePtr exp_face = *start_face_iter;
+			// XXX this is an ugly pointer hack...
 			// XXX do we need to check this?
-			if (visited_reset_points.find(start_face_iter->first) != visited_reset_points.end()) {
+			Face *exp_face_index = dynamic_cast<Face *>(&(**start_face_iter));
+			if (visited_reset_points.find(*exp_face_index) != visited_reset_points.end()) {
 				// We've seen this face already... try again
 				continue;
 			}
-			visited_reset_points.insert(start_face_iter->first);
+			visited_reset_points.insert(*exp_face_index);
 			// Create an exploration from ExpFace in each of the three directions
 			int vertices[] = {exp_face->v0, exp_face->v1, exp_face->v2};
 			BOOST_FOREACH(int exp_vertex, vertices) {
 				// Create the seed strip for the experiment
-				TriangleStripPtr si_seed(new TriangleStrip(exp_face, exp_vertex, strip_id++, experiment_id++));
+				ExperimentPtr exp(new Experiment(exp_vertex, exp_face));
 				// Add the seeded experiment list to the experiment collection
-				std::list<TriangleStripPtr> exp;
-				exp.push_back(si_seed);
 				experiments.push_back(exp);
 			}
 		}
@@ -402,34 +396,19 @@ std::list<TriangleStripPtr> TriangleStripifier::find_all_strips() {
 			return all_strips;
 		};
 		while (!experiments.empty()) {
-			std::list<TriangleStripPtr> exp = experiments.back();
-			experiments.pop_back(); // no reason to keep in this list
-			while (true) {
-				// Build the the last face of the experiment
-				exp.back()->build();
-				// See if there is a connecting face that we can move to
-				MFacePtr otherface;
-				int othervertex;
-				if (find_traversal(exp.back(), otherface, othervertex)) {
-					// if so, add it to the list
-					exp.push_back(TriangleStripPtr(new TriangleStrip(otherface, othervertex, strip_id++, exp.back()->experiment_id)));
-				} else {
-					// Otherwise, we're done
-					break;
-				}
-			}
+			ExperimentPtr exp = experiments.back();
+			experiments.pop_back(); // no reason to keep in list
+			exp->build();
 			selector.update_score(exp);
 		};
 		// Get the best experiment according to the selector
-		std::list<TriangleStripPtr> best_experiment = selector.best_sample; // XXX make copy!
+		ExperimentPtr best_experiment = selector.best_sample;
 		selector.clear();
 		// And commit it to the resultset
-		BOOST_FOREACH(TriangleStripPtr strip, best_experiment) {
+		BOOST_FOREACH(TriangleStripPtr strip, best_experiment->strips) {
 			strip->commit();
 			all_strips.push_back(strip);
 		}
-		best_experiment.clear();
+		best_experiment.reset();
 	}
 }
-
-*/
