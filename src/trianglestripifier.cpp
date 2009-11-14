@@ -312,6 +312,7 @@ void Experiment::build_adjacent(TriangleStripPtr strip) {
 		};
 		i--;
 		j++;
+		break; // staying away from border yields smaller strips
 	}
 }
 
