@@ -131,8 +131,6 @@ public:
 
 typedef boost::shared_ptr<TriangleStrip> TriangleStripPtr;
 
-/*
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ ExperimentSelector
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -162,6 +160,8 @@ public:
 	//! Remove best experiment, to start a fresh sequence of experiments.
 	void clear();
 };
+
+/*
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ TriangleStripifier

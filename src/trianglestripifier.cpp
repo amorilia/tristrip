@@ -248,19 +248,18 @@ std::list<int> TriangleStrip::get_strip() {
 	return result;
 }
 
-/*
-
 ExperimentSelector::ExperimentSelector(int _num_samples, int _min_strip_length)
 		: num_samples(_num_samples), min_strip_length(_min_strip_length),
 		strip_len_heuristic(1.0), best_score(0.0), best_sample() {};
 
 void ExperimentSelector::update_score(std::list<TriangleStripPtr> experiment) {
+	// score is average number of faces per strip
+	// XXX experiment with other scoring rules?
 	int stripsize = 0;
-	for (std::list<TriangleStripPtr>::const_iterator strip = experiment.begin();
-	        strip != experiment.end(); strip++) {
-		stripsize += (*strip)->faces.size();
+	BOOST_FOREACH(TriangleStripPtr strip, experiment) {
+		stripsize += strip->faces.size();
 	};
-	float score = strip_len_heuristic * stripsize / experiment.size();
+	float score = (strip_len_heuristic * stripsize) / experiment.size();
 	if (score > best_score) {
 		best_score = score;
 		best_sample = experiment;
@@ -271,6 +270,8 @@ void ExperimentSelector::clear() {
 	best_score = 0.0;
 	best_sample.clear();
 }
+
+/*
 
 TriangleStripifier::TriangleStripifier(MeshPtr _mesh) : selector(10, 0), mesh(_mesh), start_face_iter(_mesh->faces.end()) {};
 
