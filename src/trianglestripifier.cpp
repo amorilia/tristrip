@@ -268,13 +268,13 @@ void Experiment::build() {
 void Experiment::build_adjacent(TriangleStripPtr strip) {
 	//               zzzzzzzzzzzzzz
 	// otherface:      /         \
-	//            othervertex---*vertexiter-yyyyyyyy
+	//            othervertex---nextvertex--yyyyyyyy
 	// strip:           \        /      \   /    \
 	//                oppositevertex----xxxxxxx----......
 	//
 	//            .........---oppositevertex-yyyyyyyy
 	// strip:           \        /      \     /    \
-	//                othervertex----*vertexiter----......
+	//                othervertex----nextvertex-----......
 	// otherface:                \       /
 	//                         zzzzzzzzzzzzzz
 	//
