@@ -385,12 +385,13 @@ std::list<TriangleStripPtr> TriangleStripifier::find_all_strips() {
 			// no more experiments to run: done!!
 			return all_strips;
 		};
-		while (!experiments.empty()) {
-			ExperimentPtr exp = experiments.back();
-			experiments.pop_back(); // no reason to keep in list
+		// note: iterate via reference, so we can clear the experiment
+		BOOST_FOREACH(ExperimentPtr & exp, experiments) {
 			exp->build();
 			selector.update_score(exp);
+			exp.reset(); // no reason to keep
 		};
+		experiments.clear(); // no reason to keep
 		// Get the best experiment according to the selector
 		ExperimentPtr best_experiment = selector.best_sample;
 		selector.clear();
