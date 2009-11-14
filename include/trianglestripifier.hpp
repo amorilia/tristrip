@@ -119,8 +119,7 @@ public:
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	//! Builds the face strip forwards, then backwards, and returns
-	//! the joined list.
+	//! Builds the face strip forwards, then backwards.
 	void build(int start_vertex, MFacePtr start_face);
 
 	//! Tag strip, and its faces, as non-experimental.
