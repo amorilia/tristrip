@@ -249,4 +249,28 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_4) {
 	BOOST_CHECK(t.get_strip() == t.vertices);
 }
 
+BOOST_AUTO_TEST_CASE(triangle_strip_build_test_5) {
+	MeshPtr m(new Mesh());
+	m->add_face(2, 1, 7); // in strip
+	MFacePtr f1 = m->add_face(0, 1, 2); // in strip
+	m->add_face(2, 7, 4); // in strip
+	m->add_face(4, 7, 11); // in strip
+	m->add_face(5, 3, 2);
+	MFacePtr f2 = m->add_face(1, 0, 8); // in strip
+	m->add_face(0, 8, 9); // bad orientation!
+	MFacePtr f3 = m->add_face(8, 0, 10); // in strip
+	TriangleStrip t(1);
+	t.build(0, f1);
+	std::list<int>::const_iterator i = t.vertices.begin();
+	BOOST_CHECK_EQUAL(*i++, 10);
+	BOOST_CHECK_EQUAL(*i++, 8);
+	BOOST_CHECK_EQUAL(*i++, 0);
+	BOOST_CHECK_EQUAL(*i++, 1);
+	BOOST_CHECK_EQUAL(*i++, 2);
+	BOOST_CHECK_EQUAL(*i++, 7);
+	BOOST_CHECK_EQUAL(*i++, 4);
+	BOOST_CHECK_EQUAL(*i++, 11);
+	BOOST_CHECK(i == t.vertices.end());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
