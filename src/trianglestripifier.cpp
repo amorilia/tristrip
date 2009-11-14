@@ -67,17 +67,6 @@ TriangleStrip::TriangleStrip(int _experiment_id)
 		strip_id(TriangleStrip::NUM_STRIPS++),
 		experiment_id(_experiment_id) {};
 
-bool TriangleStrip::has_face(MFacePtr face) {
-	// Note: original method was called FaceInStrip and
-	// could test for multiple faces - however we only
-	// need to check a single face at a time
-	if (experiment_id != -1) {
-		return (face->test_strip_id == strip_id);
-	} else {
-		return (face->strip_id == strip_id);
-	}
-}
-
 bool TriangleStrip::is_face_marked(MFacePtr face) {
 	// does it belong to a final strip?
 	bool result = (face->strip_id != -1);

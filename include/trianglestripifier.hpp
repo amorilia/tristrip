@@ -100,9 +100,6 @@ public:
 	//~ Element Membership Tests
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	//! Does the given face belong to the strip?
-	bool has_face(MFacePtr face);
-
 	//! Is the face marked in this strip?
 	bool is_face_marked(MFacePtr face);
 
