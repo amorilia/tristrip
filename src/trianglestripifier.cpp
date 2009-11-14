@@ -259,6 +259,10 @@ void Experiment::build() {
 	} else if (num_faces == 3) {
 		// in this case, only try along the long edge of the strip
 		build_adjacent(strip, 1);
+	} else if (num_faces == 2) {
+		// try to find a parallel strip from both sides
+		build_adjacent(strip, 0);
+		build_adjacent(strip, 1);
 	}
 };
 
