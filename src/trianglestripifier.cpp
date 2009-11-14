@@ -53,6 +53,7 @@ POSSIBILITY OF SUCH DAMAGE.
 //#define DEBUG 1 // XXX remove when done debugging
 
 #include <algorithm> // std::copy
+#include <iterator> // std:front_inserter std::back_inserter
 #include <vector>
 
 #include "trianglestripifier.hpp"
@@ -220,31 +221,31 @@ void TriangleStrip::commit() {
 	BOOST_FOREACH(MFacePtr face, faces) mark_face(face);
 };
 
-std::list<int> TriangleStrip::get_strip() {
-	std::list<int> result;
+std::deque<int> TriangleStrip::get_strip() {
+	std::deque<int> result;
 	if (reversed) {
 		if (vertices.size() & 1) {
 			// odd length: change winding by reversing
-			result = vertices;
-			result.reverse();
+			// reverse is established through front_inserter
+			std::copy(vertices.begin(), vertices.end(),
+			          std::front_inserter(result));
 		} else if (vertices.size() == 4) {
 			// length 4: we can change winding without
 			// appending a vertex
-			std::vector<int> vertices_vec(4);
-			std::copy(vertices.begin(), vertices.end(),
-			          vertices_vec.begin());
-			result.push_back(vertices_vec[0]);
-			result.push_back(vertices_vec[2]);
-			result.push_back(vertices_vec[1]);
-			result.push_back(vertices_vec[3]);
+			result.push_back(vertices[0]);
+			result.push_back(vertices[2]);
+			result.push_back(vertices[1]);
+			result.push_back(vertices[3]);
 		} else {
 			// all other cases: append duplicate vertex to
 			// front
-			result = vertices;
+			std::copy(vertices.begin(), vertices.end(),
+			          std::back_inserter(result));
 			result.push_front(vertices.front());
 		};
 	} else {
-		result = vertices;
+		std::copy(vertices.begin(), vertices.end(),
+		          std::back_inserter(result));
 	};
 	return result;
 }
@@ -279,7 +280,7 @@ void Experiment::build_adjacent(TriangleStripPtr strip) {
 	//
 	// and so on...
 
-	std::list<int>::const_iterator vertex_iter = strip->vertices.begin();
+	std::deque<int>::const_iterator vertex_iter = strip->vertices.begin();
 	int othervertex = *vertex_iter++;
 	int oppositevertex = *vertex_iter++;
 	bool winding = strip->reversed; // initial winding

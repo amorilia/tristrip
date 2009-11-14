@@ -51,6 +51,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <cassert>
+#include <deque>
 #include <list>
 #include <set>
 #include <boost/foreach.hpp>
@@ -64,13 +65,13 @@ public:
 	//Heavily adapted from NvTriStrip.
 	//Original can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
 
-	// List of faces (implementation note: this is a list and not
+	// List of faces (implementation note: this is a deque and not
 	// a vector because we need push_front).
-	std::list<MFacePtr> faces;
+	std::deque<MFacePtr> faces;
 
 	//! Identical to faces, but written as a strip (whose winding
 	//! determined by reversed).
-	std::list<int> vertices;
+	std::deque<int> vertices;
 
 	//! Winding of strip: false means that strip can be used as
 	//! such, true means that winding is reversed. Winding can be
@@ -129,7 +130,7 @@ public:
 	void commit();
 
 	//! Get strip (always in forward winding).
-	std::list<int> get_strip();
+	std::deque<int> get_strip();
 };
 
 typedef boost::shared_ptr<TriangleStrip> TriangleStripPtr;

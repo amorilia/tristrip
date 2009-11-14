@@ -52,12 +52,12 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_0) {
 		TriangleStrip t(pv0); // using vertex index as experiment id
 		t.build(pv0, f0);
 		BOOST_CHECK_EQUAL(t.reversed, false);
-		std::list<int>::const_iterator i = t.vertices.begin();
+		std::deque<int>::const_iterator i = t.vertices.begin();
 		BOOST_CHECK_EQUAL(*i++, pv0);
 		BOOST_CHECK_EQUAL(*i++, f0->get_next_vertex(pv0));
 		BOOST_CHECK_EQUAL(*i++, f0->get_next_vertex(f0->get_next_vertex(pv0)));
 		BOOST_CHECK(i == t.vertices.end());
-		std::list<MFacePtr>::const_iterator j = t.faces.begin();
+		std::deque<MFacePtr>::const_iterator j = t.faces.begin();
 		BOOST_CHECK_EQUAL(*j++, f0);
 		BOOST_CHECK(j == t.faces.end());
 		// not reversed, so...
@@ -75,13 +75,13 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 		TriangleStrip t(1);
 		t.build(0, f0);
 		BOOST_CHECK_EQUAL(t.reversed, false);
-		std::list<int>::const_iterator i = t.vertices.begin();
+		std::deque<int>::const_iterator i = t.vertices.begin();
 		BOOST_CHECK_EQUAL(*i++, 0);
 		BOOST_CHECK_EQUAL(*i++, 1);
 		BOOST_CHECK_EQUAL(*i++, 2);
 		BOOST_CHECK_EQUAL(*i++, 3);
 		BOOST_CHECK(i == t.vertices.end());
-		std::list<MFacePtr>::const_iterator j = t.faces.begin();
+		std::deque<MFacePtr>::const_iterator j = t.faces.begin();
 		BOOST_CHECK_EQUAL(*j++, f0);
 		BOOST_CHECK_EQUAL(*j++, f1);
 		BOOST_CHECK(j == t.faces.end());
@@ -92,17 +92,17 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 		TriangleStrip t(2);
 		t.build(1, f0);
 		BOOST_CHECK_EQUAL(t.reversed, true);
-		std::list<int>::const_iterator i = t.vertices.begin();
+		std::deque<int>::const_iterator i = t.vertices.begin();
 		BOOST_CHECK_EQUAL(*i++, 3);
 		BOOST_CHECK_EQUAL(*i++, 1);
 		BOOST_CHECK_EQUAL(*i++, 2);
 		BOOST_CHECK_EQUAL(*i++, 0);
 		BOOST_CHECK(i == t.vertices.end());
-		std::list<MFacePtr>::const_iterator j = t.faces.begin();
+		std::deque<MFacePtr>::const_iterator j = t.faces.begin();
 		BOOST_CHECK_EQUAL(*j++, f1);
 		BOOST_CHECK_EQUAL(*j++, f0);
 		BOOST_CHECK(j == t.faces.end());
-		std::list<int> strip = t.get_strip();
+		std::deque<int> strip = t.get_strip();
 		i = strip.begin();
 		BOOST_CHECK_EQUAL(*i++, 3);
 		BOOST_CHECK_EQUAL(*i++, 2);
@@ -114,17 +114,17 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 		TriangleStrip t(3);
 		t.build(2, f1);
 		BOOST_CHECK_EQUAL(t.reversed, true);
-		std::list<int>::const_iterator i = t.vertices.begin();
+		std::deque<int>::const_iterator i = t.vertices.begin();
 		BOOST_CHECK_EQUAL(*i++, 0);
 		BOOST_CHECK_EQUAL(*i++, 2);
 		BOOST_CHECK_EQUAL(*i++, 1);
 		BOOST_CHECK_EQUAL(*i++, 3);
 		BOOST_CHECK(i == t.vertices.end());
-		std::list<MFacePtr>::const_iterator j = t.faces.begin();
+		std::deque<MFacePtr>::const_iterator j = t.faces.begin();
 		BOOST_CHECK_EQUAL(*j++, f0);
 		BOOST_CHECK_EQUAL(*j++, f1);
 		BOOST_CHECK(j == t.faces.end());
-		std::list<int> strip = t.get_strip();
+		std::deque<int> strip = t.get_strip();
 		i = strip.begin();
 		BOOST_CHECK_EQUAL(*i++, 0);
 		BOOST_CHECK_EQUAL(*i++, 1);
@@ -136,13 +136,13 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 		TriangleStrip t(4);
 		t.build(3, f1);
 		BOOST_CHECK_EQUAL(t.reversed, false);
-		std::list<int>::const_iterator i = t.vertices.begin();
+		std::deque<int>::const_iterator i = t.vertices.begin();
 		BOOST_CHECK_EQUAL(*i++, 3);
 		BOOST_CHECK_EQUAL(*i++, 2);
 		BOOST_CHECK_EQUAL(*i++, 1);
 		BOOST_CHECK_EQUAL(*i++, 0);
 		BOOST_CHECK(i == t.vertices.end());
-		std::list<MFacePtr>::const_iterator j = t.faces.begin();
+		std::deque<MFacePtr>::const_iterator j = t.faces.begin();
 		BOOST_CHECK_EQUAL(*j++, f1);
 		BOOST_CHECK_EQUAL(*j++, f0);
 		BOOST_CHECK(j == t.faces.end());
@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_2) {
 	TriangleStrip t(1);
 	t.build(2, f1);
 	BOOST_CHECK_EQUAL(t.reversed, true);
-	std::list<int>::const_iterator i = t.vertices.begin();
+	std::deque<int>::const_iterator i = t.vertices.begin();
 	BOOST_CHECK_EQUAL(*i++, 1);
 	BOOST_CHECK_EQUAL(*i++, 2);
 	BOOST_CHECK_EQUAL(*i++, 3);
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_2) {
 	BOOST_CHECK_EQUAL(*i++, 5);
 	BOOST_CHECK_EQUAL(*i++, 6);
 	BOOST_CHECK(i == t.vertices.end());
-	std::list<int> strip = t.get_strip();
+	std::deque<int> strip = t.get_strip();
 	i = strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 1); // extra vertex
 	BOOST_CHECK_EQUAL(*i++, 1);
@@ -193,14 +193,14 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_3) {
 	TriangleStrip t(1);
 	t.build(2, f1);
 	BOOST_CHECK_EQUAL(t.reversed, true);
-	std::list<int>::const_iterator i = t.vertices.begin();
+	std::deque<int>::const_iterator i = t.vertices.begin();
 	BOOST_CHECK_EQUAL(*i++, 1);
 	BOOST_CHECK_EQUAL(*i++, 2);
 	BOOST_CHECK_EQUAL(*i++, 3);
 	BOOST_CHECK_EQUAL(*i++, 4);
 	BOOST_CHECK_EQUAL(*i++, 5);
 	BOOST_CHECK(i == t.vertices.end());
-	std::list<int> strip = t.get_strip();
+	std::deque<int> strip = t.get_strip();
 	i = strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 5); // reversed order
 	BOOST_CHECK_EQUAL(*i++, 4);
@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_4) {
 	TriangleStrip t(1);
 	t.build(7, f1);
 	BOOST_CHECK_EQUAL(t.reversed, false);
-	std::list<int>::const_iterator i = t.vertices.begin();
+	std::deque<int>::const_iterator i = t.vertices.begin();
 	BOOST_CHECK_EQUAL(*i++, 12);
 	BOOST_CHECK_EQUAL(*i++, 11);
 	BOOST_CHECK_EQUAL(*i++, 10);
@@ -236,7 +236,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_4) {
 	BOOST_CHECK_EQUAL(*i++, 0);
 	BOOST_CHECK_EQUAL(*i++, 13);
 	BOOST_CHECK(i == t.vertices.end());
-	std::list<MFacePtr>::const_iterator j = t.faces.begin();
+	std::deque<MFacePtr>::const_iterator j = t.faces.begin();
 	BOOST_CHECK_EQUAL(*j++, f7);
 	BOOST_CHECK_EQUAL(*j++, f6);
 	BOOST_CHECK_EQUAL(*j++, f5);
@@ -261,7 +261,7 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_5) {
 	MFacePtr f3 = m->add_face(8, 0, 10); // in strip
 	TriangleStrip t(1);
 	t.build(0, f1);
-	std::list<int>::const_iterator i = t.vertices.begin();
+	std::deque<int>::const_iterator i = t.vertices.begin();
 	BOOST_CHECK_EQUAL(*i++, 10);
 	BOOST_CHECK_EQUAL(*i++, 8);
 	BOOST_CHECK_EQUAL(*i++, 0);

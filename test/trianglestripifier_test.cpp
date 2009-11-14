@@ -106,8 +106,8 @@ BOOST_AUTO_TEST_CASE(experiment_build) {
 
 	std::list<TriangleStripPtr>::const_iterator t = exp->strips.begin();
 
-	std::list<int> strip = (*t)->get_strip();
-	std::list<int>::const_iterator i = strip.begin();
+	std::deque<int> strip = (*t)->get_strip();
+	std::deque<int>::const_iterator i = strip.begin();
 
 	// ... extra check, could omit this
 	BOOST_CHECK_EQUAL(*i++, 11);
@@ -182,8 +182,8 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips) {
 	std::list<TriangleStripPtr> all_strips = ts.find_all_strips();
 	std::list<TriangleStripPtr>::const_iterator t = all_strips.begin();
 
-	std::list<int> strip = (*t)->get_strip();
-	std::list<int>::const_iterator i = strip.begin();
+	std::deque<int> strip = (*t)->get_strip();
+	std::deque<int>::const_iterator i = strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 11);
 	BOOST_CHECK_EQUAL(*i++, 4);
 	BOOST_CHECK_EQUAL(*i++, 7);

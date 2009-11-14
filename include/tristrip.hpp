@@ -36,7 +36,8 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <list>
+#include <deque>
 
 //! Stripify list of triangles.
-std::list<std::list<int> > stripify(const std::list<std::list<int> > & triangles);
+std::list<std::deque<int> > stripify(const std::list<std::list<int> > & triangles);
 
