@@ -378,8 +378,6 @@ bool TriangleStripifier::find_good_reset_point() {
 
 std::list<TriangleStripPtr> TriangleStripifier::find_all_strips() {
 	std::list<TriangleStripPtr> all_strips;
-	int experiment_id = 1;
-	int strip_id = 1;
 
 	while (true) {
 		// note: one experiment is a collection of adjacent strips
