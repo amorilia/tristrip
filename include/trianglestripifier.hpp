@@ -64,23 +64,32 @@ public:
 	//Heavily adapted from NvTriStrip.
 	//Original can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
 
-	std::list<MFacePtr> faces; // list because we need push_front
-	std::list<int> strip; // identical to faces, but written as a strip
-	MFacePtr start_face;
-	std::list<MFacePtr>::const_iterator start_face_iter;
-	int start_vertex; // determines direction of strip
-	int experiment_id;
-	int strip_id;
+	// List of faces (implementation note: this is a list and not
+	// a vector because we need push_front).
+	std::list<MFacePtr> faces;
 
-	// Initialized to zero (just after class definition).
-	static int NUM_STRIPS; //! Used to determine the next strip id.
+	//! Identical to faces, but written as a strip.
+	std::list<int> strip;
+
+	//! Winding of strip: false means that strip can be used as
+	//! such, true means that winding is reversed. Winding can be
+	//! reversed by appending a duplicate vertex to the front, or
+	//! if the strip has odd length, by reversing the strip.
+	bool reversed;
+
+	//! Identifier of the experiment (= collection of strips), if
+	//! this strip is part of an experiment. Note that a strip is
+	//! part of an experiment until commit is called.
+	int experiment_id;
+
+	//! Identifier of the strip.
+	int strip_id;
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Public Methods
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	TriangleStrip(MFacePtr _start_face, int _start_vertex,
-	              int _strip_id=-1, int _experiment_id=-1);
+	TriangleStrip(int _strip_id, int _experiment_id);
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Element Membership Tests
@@ -102,21 +111,21 @@ public:
 
 
 	//! Building face traversal list starting from the start_face and
-	//! the edge opposite pv0. Returns number of faces added.
-	int traverse_faces(int pv0, bool forward);
+	//! the edge opposite start_vertex.
+	void traverse_faces(int start_vertex, MFacePtr start_face,
+	                    bool forward);
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	//! Builds the face strip forwards, then backwards, and returns
 	//! the joined list.
-	void build();
+	void build(int start_vertex, MFacePtr start_face);
 
+	//! Tag strip, and its faces, as non-experimental.
 	void commit();
 
-	// Note: TriangleListIndices is too trivial to be of interest, and
-	// TriangleStripIndices not needed because we store the strip during
-	// face traversal.
-
+	//! Get strip (always in forward winding).
+	std::list<int> get_strip();
 };
 
 typedef boost::shared_ptr<TriangleStrip> TriangleStripPtr;
