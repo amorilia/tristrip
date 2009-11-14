@@ -253,7 +253,7 @@ void Experiment::build() {
 	strips.push_back(strip);
 	// build strips adjacent to the initial strip
 	int num_faces = strip->faces.size();
-	if (num_faces > 4) {
+	if (num_faces >= 4) {
 		build_adjacent(strip, num_faces / 2);
 		build_adjacent(strip, num_faces / 2 + 1); // again! to get the other side
 	};
