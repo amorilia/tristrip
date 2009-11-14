@@ -101,23 +101,6 @@ BOOST_AUTO_TEST_CASE(strip_build) {
 	BOOST_CHECK(i == s.strip.end());
 }
 
-BOOST_AUTO_TEST_CASE(triangle_stripifier_find_start_face) {
-	// should find non-isolated triangle with least neighbours
-	MeshPtr m(new Mesh());
-	m->add_face(0, 7, 21); // isolated, should not be found
-	m->add_face(2, 1, 7);
-	m->add_face(0, 1, 2);
-	m->add_face(1, 0, 2);
-	m->add_face(2, 7, 4);
-	m->add_face(4, 7, 11);
-	m->add_face(1, 0, 8);
-	MFacePtr f = m->add_face(8, 0, 10); // single neighbour
-	TriangleStripifier t(m);
-	t.find_start_face();
-	//t.start_face_iter->second->dump();
-	BOOST_CHECK_EQUAL(t.start_face_iter->second, f);
-}
-
 BOOST_AUTO_TEST_CASE(triangle_stripifier_find_traversal) {
 	MeshPtr m(new Mesh());
 
