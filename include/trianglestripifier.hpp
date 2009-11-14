@@ -113,14 +113,15 @@ public:
 
 
 	//! Building face traversal list starting from the start_face and
-	//! the edge opposite start_vertex.
-	void traverse_faces(int start_vertex, MFacePtr start_face,
-	                    bool forward);
+	//! the edge opposite start_vertex. Returns number of faces added.
+	int traverse_faces(int start_vertex, MFacePtr start_face,
+	                   bool forward);
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	//! Builds the face strip forwards, then backwards.
-	void build(int start_vertex, MFacePtr start_face);
+	//! Builds the face strip forwards, then backwards. Returns
+	//! index of start_face.
+	int build(int start_vertex, MFacePtr start_face);
 
 	//! Tag strip, and its faces, as non-experimental.
 	void commit();
@@ -155,7 +156,7 @@ public:
 
 	//! Build strips adjacent to given strip, and add them to the
 	//! experiment. This is a helper function used by build.
-	void build_adjacent(TriangleStripPtr strip);
+	bool build_adjacent(TriangleStripPtr strip, int face_index);
 };
 
 typedef boost::shared_ptr<Experiment> ExperimentPtr;

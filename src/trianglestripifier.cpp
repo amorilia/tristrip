@@ -101,8 +101,8 @@ MFacePtr TriangleStrip::get_unmarked_adjacent_face(MFacePtr face, int vi) {
 	return MFacePtr();
 }
 
-void TriangleStrip::traverse_faces(int start_vertex, MFacePtr start_face,
-                                   bool forward) {
+int TriangleStrip::traverse_faces(int start_vertex, MFacePtr start_face,
+                                  bool forward) {
 	int count = 0;
 	int pv0 = start_vertex;
 	int pv1 = start_face->get_next_vertex(pv0);
@@ -184,9 +184,10 @@ void TriangleStrip::traverse_faces(int start_vertex, MFacePtr start_face,
 		// get next face opposite pv0
 		next_face = get_unmarked_adjacent_face(next_face, pv0);
 	};
+	return count;
 };
 
-void TriangleStrip::build(int start_vertex, MFacePtr start_face) {
+int TriangleStrip::build(int start_vertex, MFacePtr start_face) {
 	faces.clear();
 	vertices.clear();
 	// find start indices
@@ -201,7 +202,7 @@ void TriangleStrip::build(int start_vertex, MFacePtr start_face) {
 	vertices.push_back(v2);
 	// build strip by traversing faces forward, then backward
 	traverse_faces(v0, start_face, true);
-	traverse_faces(v2, start_face, false);
+	return traverse_faces(v2, start_face, false);
 };
 
 void TriangleStrip::commit() {
@@ -251,11 +252,14 @@ void Experiment::build() {
 	strip->build(vertex, face);
 	strips.push_back(strip);
 	// build strips adjacent to the initial strip
-	build_adjacent(strip);
-	build_adjacent(strip); // again! to get the other side
+	int num_faces = strip->faces.size();
+	if (num_faces > 4) {
+		build_adjacent(strip, num_faces / 2);
+		build_adjacent(strip, num_faces / 2 + 1); // again! to get the other side
+	};
 };
 
-void Experiment::build_adjacent(TriangleStripPtr strip) {
+bool Experiment::build_adjacent(TriangleStripPtr strip, int face_index) {
 	//               zzzzzzzzzzzzzz
 	// otherface:      /         \
 	//            othervertex---nextvertex--yyyyyyyy
@@ -270,51 +274,31 @@ void Experiment::build_adjacent(TriangleStripPtr strip) {
 	//
 	// and so on...
 
-	int num_faces = strip->faces.size();
-	int face_index;
-	int othervertex;
-	int oppositevertex;
-	int nextvertex;
-	int i = num_faces / 2;
-	int j = i + 1;
-	MFacePtr face;
-	MFacePtr otherface;
-	while ((i >= 0) && (j < num_faces)) {
-		// try forward face
-		face_index = j;
-		othervertex = strip->vertices[face_index];
-		oppositevertex = strip->vertices[face_index + 1];
-		nextvertex = strip->vertices[face_index + 2];
-		face = strip->faces[face_index];
-		otherface = strip->get_unmarked_adjacent_face(face, oppositevertex);
-		if (!otherface) {
-			// try backward face
-			face_index = i;
-			othervertex = strip->vertices[face_index];
-			oppositevertex = strip->vertices[face_index + 1];
-			nextvertex = strip->vertices[face_index + 2];
-			face = strip->faces[face_index];
-			otherface = strip->get_unmarked_adjacent_face(face, oppositevertex);
+	int oppositevertex = strip->vertices[face_index + 1];
+	MFacePtr face = strip->faces[face_index];
+	if (MFacePtr otherface = strip->get_unmarked_adjacent_face(face, oppositevertex)) {
+		bool winding = strip->reversed; // initial winding
+		if (face_index & 1) winding = !winding;
+		// create and build new strip
+		TriangleStripPtr otherstrip(new TriangleStrip(experiment_id));
+		if (winding) {
+			int othervertex = strip->vertices[face_index];
+			face_index = otherstrip->build(othervertex, otherface);
+		} else {
+			int nextvertex = strip->vertices[face_index + 2];
+			face_index = otherstrip->build(nextvertex, otherface);
 		};
-		if (otherface) {
-			bool winding = strip->reversed; // initial winding
-			if (face_index & 1) winding = !winding;
-			// create and build new strip
-			TriangleStripPtr otherstrip(new TriangleStrip(experiment_id));
-			if (winding) {
-				otherstrip->build(othervertex, otherface);
-			} else {
-				otherstrip->build(nextvertex, otherface);
-			};
-			strips.push_back(otherstrip);
-			// build adjacent strip to the strip we just found
-			build_adjacent(otherstrip);
-			break;
-		};
-		break; // staying away from border yields longer strips
-		i--;
-		j++;
-	}
+		strips.push_back(otherstrip);
+		// build adjacent strip to the strip we just found
+		if (face_index > otherstrip->faces.size() / 2) {
+			build_adjacent(otherstrip, face_index - 1);
+		} else if (face_index < otherstrip->faces.size() - 1) {
+			build_adjacent(otherstrip, face_index + 1);
+		}
+		// we built an adjacent strip
+		return true;
+	};
+	return false;
 }
 
 int Experiment::NUM_EXPERIMENTS = 0;
