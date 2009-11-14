@@ -152,13 +152,12 @@ public:
 
 	Experiment(int _vertex, MFacePtr _face);
 
-	// XXX move this to TriangleStrip?
-	//! Find a face and edge to start a new strip, parallel to a
-	//! given strip.
-	bool find_traversal(TriangleStripPtr strip,
-	                    MFacePtr & otherface, int & othervertex);
-
+	//! Build strips, starting from vertex and face.
 	void build();
+
+	//! Build strips adjacent to given strip, and add them to the
+	//! experiment.
+	void build_adjacent(TriangleStripPtr strip);
 };
 
 typedef boost::shared_ptr<Experiment> ExperimentPtr;

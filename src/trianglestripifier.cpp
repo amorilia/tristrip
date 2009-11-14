@@ -260,22 +260,8 @@ void Experiment::build() {
 	TriangleStripPtr strip(new TriangleStrip(experiment_id));
 	strip->build(vertex, face);
 	strips.push_back(strip);
-	// build adjacent strips
-	while (true) {
-		// See if there is a connecting face that we can move to
-		MFacePtr otherface;
-		int othervertex;
-		// XXX worth looking for more than one adjacent strip?
-		if (find_traversal(strip, otherface, othervertex)) {
-			// if so, add it to the list
-			strip = TriangleStripPtr(new TriangleStrip(experiment_id));
-			strip->build(othervertex, otherface);
-			strips.push_back(strip);
-		} else {
-			// Otherwise, we're done
-			break;
-		}
-	}
+	// build strips adjacent to the initial strip
+	build_adjacent(strip);
 };
 
 int Experiment::NUM_EXPERIMENTS = 0;
@@ -328,9 +314,7 @@ bool TriangleStripifier::find_good_reset_point() {
 	return false;
 };
 
-bool Experiment::find_traversal(TriangleStripPtr strip,
-                                MFacePtr & otherface,
-                                int & othervertex) {
+void Experiment::build_adjacent(TriangleStripPtr strip) {
 	//               zzzzzzzzzzzzzz
 	// otherface:      /         \
 	//            othervertex---*vertexiter-yyyyyyyy
@@ -346,16 +330,22 @@ bool Experiment::find_traversal(TriangleStripPtr strip,
 	// and so on...
 
 	std::list<int>::const_iterator vertex_iter = strip->vertices.begin();
-	othervertex = *vertex_iter++;
+	int othervertex = *vertex_iter++;
 	int oppositevertex = *vertex_iter++;
 	BOOST_FOREACH(MFacePtr face, strip->faces) {
-		otherface = strip->get_unmarked_adjacent_face(face, oppositevertex);
-		if (otherface) return true;
+		MFacePtr otherface = strip->get_unmarked_adjacent_face(face, oppositevertex);
+		if (otherface) {
+			// create and build new strip
+			TriangleStripPtr otherstrip(new TriangleStrip(experiment_id));
+			otherstrip->build(othervertex, otherface);
+			strips.push_back(otherstrip);
+			// build adjacent strips to the strip we just found
+			build_adjacent(otherstrip);
+		};
+		// prepare for next face
 		othervertex = oppositevertex;
 		oppositevertex = *vertex_iter++;
 	}
-	// nothing found
-	return false;
 }
 
 std::list<TriangleStripPtr> TriangleStripifier::find_all_strips() {
