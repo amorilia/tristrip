@@ -252,6 +252,7 @@ void Experiment::build() {
 	strips.push_back(strip);
 	// build strips adjacent to the initial strip
 	build_adjacent(strip);
+	build_adjacent(strip); // again! to get the other side
 };
 
 void Experiment::build_adjacent(TriangleStripPtr strip) {
@@ -310,9 +311,9 @@ void Experiment::build_adjacent(TriangleStripPtr strip) {
 			build_adjacent(otherstrip);
 			break;
 		};
+		break; // staying away from border yields longer strips
 		i--;
 		j++;
-		break; // staying away from border yields smaller strips
 	}
 }
 
