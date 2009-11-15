@@ -257,8 +257,9 @@ void Experiment::build() {
 		build_adjacent(strip, num_faces / 2);
 		build_adjacent(strip, num_faces / 2 + 1);
 	} else if (num_faces == 3) {
-		// in this case, try along any two edges of the strip
-		build_adjacent(strip, 0);
+		// also try second edge from long side of the strip if
+	        // first edge fails
+		if (!build_adjacent(strip, 0)) build_adjacent(strip, 2);
 		build_adjacent(strip, 1);
 	} else if (num_faces == 2) {
 		// try to find a parallel strip from both sides
@@ -292,7 +293,7 @@ bool Experiment::build_adjacent(TriangleStripPtr strip, int face_index) {
 	int oppositevertex = strip->vertices[face_index + 1];
 	MFacePtr face = strip->faces[face_index];
 	if (MFacePtr otherface = strip->get_unmarked_adjacent_face(face, oppositevertex)) {
-		bool winding = strip->reversed; // initial winding
+		bool winding = strip->reversed; // winding of first face
 		if (face_index & 1) winding = !winding;
 		// create and build new strip
 		TriangleStripPtr otherstrip(new TriangleStrip(experiment_id));
@@ -318,8 +319,8 @@ bool Experiment::build_adjacent(TriangleStripPtr strip, int face_index) {
 
 int Experiment::NUM_EXPERIMENTS = 0;
 
-ExperimentSelector::ExperimentSelector(int _num_samples, int _min_strip_length)
-		: num_samples(_num_samples), min_strip_length(_min_strip_length),
+                                  ExperimentSelector::ExperimentSelector(int _num_samples, int _min_strip_length)
+		                                  : num_samples(_num_samples), min_strip_length(_min_strip_length),
 		strip_len_heuristic(1.0), best_score(0.0), best_sample() {};
 
 void ExperimentSelector::update_score(ExperimentPtr experiment) {
