@@ -263,6 +263,13 @@ void Experiment::build() {
 		// try to find a parallel strip from both sides
 		build_adjacent(strip, 0);
 		build_adjacent(strip, 1);
+	} else if (num_faces == 1) {
+		// try to find a parallel strip; note that there are
+		// three directions to build a parallel strip to a
+		// single triangle, but this is already taken care off
+		// by having three experiments per triangle, one for
+		// each edge
+		build_adjacent(strip, 0);
 	}
 };
 
