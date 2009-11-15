@@ -125,17 +125,6 @@ BOOST_AUTO_TEST_CASE(experiment_build) {
 	t++;
 	strip = (*t)->get_strip();
 	i = strip.begin();
-	BOOST_CHECK_EQUAL(*i++, 32);
-	BOOST_CHECK_EQUAL(*i++, 8);
-	BOOST_CHECK_EQUAL(*i++, 31);
-	BOOST_CHECK_EQUAL(*i++, 11);
-	BOOST_CHECK_EQUAL(*i++, 33);
-	BOOST_CHECK(i == strip.end());
-
-	// check parallel strip
-	t++;
-	strip = (*t)->get_strip();
-	i = strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 4);
 	BOOST_CHECK_EQUAL(*i++, 22);
 	BOOST_CHECK_EQUAL(*i++, 2);
@@ -144,6 +133,19 @@ BOOST_AUTO_TEST_CASE(experiment_build) {
 	BOOST_CHECK_EQUAL(*i++, 24);
 	BOOST_CHECK_EQUAL(*i++, 9);
 	BOOST_CHECK(i == strip.end());
+
+	/*
+	// another parallel strip - not in experiment with current algorithm
+	t++;
+	strip = (*t)->get_strip();
+	i = strip.begin();
+	BOOST_CHECK_EQUAL(*i++, 32);
+	BOOST_CHECK_EQUAL(*i++, 8);
+	BOOST_CHECK_EQUAL(*i++, 31);
+	BOOST_CHECK_EQUAL(*i++, 11);
+	BOOST_CHECK_EQUAL(*i++, 33);
+	BOOST_CHECK(i == strip.end());
+	*/
 
 	// no more strips
 	t++;
@@ -198,16 +200,6 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips) {
 	t++;
 	strip = (*t)->get_strip();
 	i = strip.begin();
-	BOOST_CHECK_EQUAL(*i++, 32);
-	BOOST_CHECK_EQUAL(*i++, 8);
-	BOOST_CHECK_EQUAL(*i++, 31);
-	BOOST_CHECK_EQUAL(*i++, 11);
-	BOOST_CHECK_EQUAL(*i++, 33);
-	BOOST_CHECK(i == strip.end());
-
-	t++;
-	strip = (*t)->get_strip();
-	i = strip.begin();
 	BOOST_CHECK_EQUAL(*i++, 4);
 	BOOST_CHECK_EQUAL(*i++, 22);
 	BOOST_CHECK_EQUAL(*i++, 2);
@@ -215,6 +207,16 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips) {
 	BOOST_CHECK_EQUAL(*i++, 0);
 	BOOST_CHECK_EQUAL(*i++, 24);
 	BOOST_CHECK_EQUAL(*i++, 9);
+	BOOST_CHECK(i == strip.end());
+
+	t++;
+	strip = (*t)->get_strip();
+	i = strip.begin();
+	BOOST_CHECK_EQUAL(*i++, 32);
+	BOOST_CHECK_EQUAL(*i++, 8);
+	BOOST_CHECK_EQUAL(*i++, 31);
+	BOOST_CHECK_EQUAL(*i++, 11);
+	BOOST_CHECK_EQUAL(*i++, 33);
 	BOOST_CHECK(i == strip.end());
 
 	t++;
