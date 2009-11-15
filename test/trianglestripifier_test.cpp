@@ -152,7 +152,15 @@ BOOST_AUTO_TEST_CASE(experiment_build) {
 	BOOST_CHECK(t == exp->strips.end());
 }
 
-BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips) {
+BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips_0) {
+	// stripify on empty mesh should not fail
+	MeshPtr m(new Mesh());
+	TriangleStripifier ts(m);
+	std::list<TriangleStripPtr> all_strips = ts.find_all_strips();
+	BOOST_CHECK_EQUAL(all_strips.size(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips_1) {
 	MeshPtr m(new Mesh());
 
 	// first strip

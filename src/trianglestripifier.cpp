@@ -347,6 +347,10 @@ TriangleStripifier::TriangleStripifier(MeshPtr _mesh)
 		: selector(10, 0), mesh(_mesh), start_face_iter(_mesh->faces.end()) {};
 
 bool TriangleStripifier::find_good_reset_point() {
+	// special case: no faces!
+	if (mesh->faces.size() == 0)
+		return false;
+
 	int start_step = mesh->faces.size() / selector.num_samples;
 	if ((mesh->faces.end() - start_face_iter) > start_step) {
 		start_face_iter += start_step;
