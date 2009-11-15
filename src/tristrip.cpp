@@ -52,7 +52,8 @@ std::list<std::deque<int> > stripify(const std::list<std::list<int> > & triangle
 		assert(vertex != triangle.end());
 		int v2 = *vertex++;
 		assert(vertex == triangle.end());
-		mesh->add_face(v0, v1, v2);
+		if ((v0 != v1) && (v1 != v2) && (v2 != v0))
+			mesh->add_face(v0, v1, v2);
 	};
 	// stripify the mesh
 	TriangleStripifier t(mesh);
