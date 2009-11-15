@@ -251,13 +251,14 @@ void Experiment::build() {
 	TriangleStripPtr strip(new TriangleStrip(experiment_id));
 	strip->build(vertex, face);
 	strips.push_back(strip);
-	// build strips adjacent to the initial strip
+	// build strips adjacent to the initial strip, from both sides
 	int num_faces = strip->faces.size();
 	if (num_faces >= 4) {
 		build_adjacent(strip, num_faces / 2);
-		build_adjacent(strip, num_faces / 2 + 1); // again! to get the other side
+		build_adjacent(strip, num_faces / 2 + 1);
 	} else if (num_faces == 3) {
-		// in this case, only try along the long edge of the strip
+		// in this case, try along any two edges of the strip
+		build_adjacent(strip, 0);
 		build_adjacent(strip, 1);
 	} else if (num_faces == 2) {
 		// try to find a parallel strip from both sides
