@@ -190,6 +190,7 @@ int TriangleStrip::traverse_faces(int start_vertex, MFacePtr start_face,
 int TriangleStrip::build(int start_vertex, MFacePtr start_face) {
 	faces.clear();
 	vertices.clear();
+	reversed = false;
 	// find start indices
 	int v0 = start_vertex;
 	int v1 = start_face->get_next_vertex(v0);
