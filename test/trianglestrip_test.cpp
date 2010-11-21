@@ -43,7 +43,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 BOOST_AUTO_TEST_SUITE(triangle_strip_test_suite)
 
-BOOST_AUTO_TEST_CASE(triangle_strip_build_test_0) {
+BOOST_AUTO_TEST_CASE(triangle_strip_build_test_0)
+{
 	// simple test
 	Mesh m;
 	MFacePtr f0 = m.add_face(0, 1, 2);
@@ -65,7 +66,8 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_0) {
 	};
 }
 
-BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
+BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1)
+{
 	// another simple test
 	// also tests get_strip on strips of length 4
 	Mesh m;
@@ -151,7 +153,8 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_1) {
 	}
 }
 
-BOOST_AUTO_TEST_CASE(triangle_strip_build_test_2) {
+BOOST_AUTO_TEST_CASE(triangle_strip_build_test_2)
+{
 	// checks that extra vertex is appended to fix winding
 	// 1---3---5
 	//  \ / \ / \
@@ -184,7 +187,8 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_2) {
 	BOOST_CHECK(i == strip.end());
 }
 
-BOOST_AUTO_TEST_CASE(triangle_strip_build_test_3) {
+BOOST_AUTO_TEST_CASE(triangle_strip_build_test_3)
+{
 	// checks that strip is reversed to fix winding
 	Mesh m;
 	MFacePtr f0 = m.add_face(1, 3, 2);
@@ -210,7 +214,8 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_3) {
 	BOOST_CHECK(i == strip.end());
 }
 
-BOOST_AUTO_TEST_CASE(triangle_strip_build_test_4) {
+BOOST_AUTO_TEST_CASE(triangle_strip_build_test_4)
+{
 	// construct slightly more complicated mesh
 	Mesh m;
 	MFacePtr f0 = m.add_face(0, 1, 2);
@@ -249,7 +254,8 @@ BOOST_AUTO_TEST_CASE(triangle_strip_build_test_4) {
 	BOOST_CHECK(t.get_strip() == t.vertices);
 }
 
-BOOST_AUTO_TEST_CASE(triangle_strip_build_test_5) {
+BOOST_AUTO_TEST_CASE(triangle_strip_build_test_5)
+{
 	MeshPtr m(new Mesh());
 	m->add_face(2, 1, 7); // in strip
 	MFacePtr f1 = m->add_face(0, 1, 2); // in strip

@@ -63,11 +63,12 @@ POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 TriangleStrip::TriangleStrip(int _experiment_id)
-		: faces(), vertices(), reversed(false),
-		strip_id(TriangleStrip::NUM_STRIPS++),
-		experiment_id(_experiment_id) {};
+	: faces(), vertices(), reversed(false),
+	  strip_id(TriangleStrip::NUM_STRIPS++),
+	  experiment_id(_experiment_id) {};
 
-bool TriangleStrip::is_face_marked(MFacePtr face) {
+bool TriangleStrip::is_face_marked(MFacePtr face)
+{
 	// does it belong to a final strip?
 	bool result = (face->strip_id != -1);
 	// it does not belong to a final strip... does it
@@ -78,7 +79,8 @@ bool TriangleStrip::is_face_marked(MFacePtr face) {
 	return result;
 }
 
-void TriangleStrip::mark_face(MFacePtr face) {
+void TriangleStrip::mark_face(MFacePtr face)
+{
 	if (experiment_id != -1) {
 		face->strip_id = -1;
 		face->experiment_id = experiment_id;
@@ -90,7 +92,8 @@ void TriangleStrip::mark_face(MFacePtr face) {
 	}
 }
 
-MFacePtr TriangleStrip::get_unmarked_adjacent_face(MFacePtr face, int vi) {
+MFacePtr TriangleStrip::get_unmarked_adjacent_face(MFacePtr face, int vi)
+{
 	BOOST_FOREACH(boost::weak_ptr<MFace> _otherface, face->get_adjacent_faces(vi)) {
 		if (MFacePtr otherface = _otherface.lock()) {
 			if (!is_face_marked(otherface)) {
@@ -102,7 +105,8 @@ MFacePtr TriangleStrip::get_unmarked_adjacent_face(MFacePtr face, int vi) {
 }
 
 int TriangleStrip::traverse_faces(int start_vertex, MFacePtr start_face,
-                                  bool forward) {
+                                  bool forward)
+{
 	int count = 0;
 	int pv0 = start_vertex;
 	int pv1 = start_face->get_next_vertex(pv0);
@@ -187,7 +191,8 @@ int TriangleStrip::traverse_faces(int start_vertex, MFacePtr start_face,
 	return count;
 };
 
-int TriangleStrip::build(int start_vertex, MFacePtr start_face) {
+int TriangleStrip::build(int start_vertex, MFacePtr start_face)
+{
 	faces.clear();
 	vertices.clear();
 	reversed = false;
@@ -206,13 +211,15 @@ int TriangleStrip::build(int start_vertex, MFacePtr start_face) {
 	return traverse_faces(v2, start_face, false);
 };
 
-void TriangleStrip::commit() {
+void TriangleStrip::commit()
+{
 	// remove experiment tag from strip and from its faces
 	experiment_id = -1;
 	BOOST_FOREACH(MFacePtr face, faces) mark_face(face);
 };
 
-std::deque<int> TriangleStrip::get_strip() {
+std::deque<int> TriangleStrip::get_strip()
+{
 	std::deque<int> result;
 	if (reversed) {
 		if (vertices.size() & 1) {
@@ -244,10 +251,11 @@ std::deque<int> TriangleStrip::get_strip() {
 int TriangleStrip::NUM_STRIPS = 0;
 
 Experiment::Experiment(int _vertex, MFacePtr _face)
-		: vertex(_vertex), face(_face),
-		experiment_id(Experiment::NUM_EXPERIMENTS++) {};
+	: vertex(_vertex), face(_face),
+	  experiment_id(Experiment::NUM_EXPERIMENTS++) {};
 
-void Experiment::build() {
+void Experiment::build()
+{
 	// build initial strip
 	TriangleStripPtr strip(new TriangleStrip(experiment_id));
 	strip->build(vertex, face);
@@ -276,7 +284,8 @@ void Experiment::build() {
 	}
 };
 
-bool Experiment::build_adjacent(TriangleStripPtr strip, int face_index) {
+bool Experiment::build_adjacent(TriangleStripPtr strip, int face_index)
+{
 	//               zzzzzzzzzzzzzz
 	// otherface:      /         \
 	//            othervertex---nextvertex--yyyyyyyy
@@ -321,10 +330,11 @@ bool Experiment::build_adjacent(TriangleStripPtr strip, int face_index) {
 int Experiment::NUM_EXPERIMENTS = 0;
 
 ExperimentSelector::ExperimentSelector(int _num_samples, int _min_strip_length)
-		: num_samples(_num_samples), min_strip_length(_min_strip_length),
-		strip_len_heuristic(1.0), best_score(0.0), best_sample() {};
+	: num_samples(_num_samples), min_strip_length(_min_strip_length),
+	  strip_len_heuristic(1.0), best_score(0.0), best_sample() {};
 
-void ExperimentSelector::update_score(ExperimentPtr experiment) {
+void ExperimentSelector::update_score(ExperimentPtr experiment)
+{
 	// score is average number of faces per strip
 	// XXX experiment with other scoring rules?
 	int stripsize = 0;
@@ -339,15 +349,17 @@ void ExperimentSelector::update_score(ExperimentPtr experiment) {
 	};
 }
 
-void ExperimentSelector::clear() {
+void ExperimentSelector::clear()
+{
 	best_score = 0.0;
 	best_sample.reset();
 }
 
 TriangleStripifier::TriangleStripifier(MeshPtr _mesh)
-		: selector(10, 0), mesh(_mesh), start_face_iter(_mesh->faces.end()) {};
+	: selector(10, 0), mesh(_mesh), start_face_iter(_mesh->faces.end()) {};
 
-bool TriangleStripifier::find_good_reset_point() {
+bool TriangleStripifier::find_good_reset_point()
+{
 	// special case: no faces!
 	if (mesh->faces.size() == 0)
 		return false;
@@ -373,7 +385,8 @@ bool TriangleStripifier::find_good_reset_point() {
 	return false;
 };
 
-std::list<TriangleStripPtr> TriangleStripifier::find_all_strips() {
+std::list<TriangleStripPtr> TriangleStripifier::find_all_strips()
+{
 	std::list<TriangleStripPtr> all_strips;
 
 	while (true) {

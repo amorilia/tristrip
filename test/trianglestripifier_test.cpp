@@ -43,7 +43,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 BOOST_AUTO_TEST_SUITE(triangle_stripifier_test_suite)
 
-BOOST_AUTO_TEST_CASE(find_start_face_good_reset_point_test) {
+BOOST_AUTO_TEST_CASE(find_start_face_good_reset_point_test)
+{
 	MeshPtr m(new Mesh());
 	MFacePtr f0 = m->add_face(2, 1, 7);
 	MFacePtr f1 = m->add_face(0, 1, 2);
@@ -73,7 +74,8 @@ BOOST_AUTO_TEST_CASE(find_start_face_good_reset_point_test) {
 	BOOST_CHECK_EQUAL(t.find_good_reset_point(), false);
 }
 
-BOOST_AUTO_TEST_CASE(experiment_build) {
+BOOST_AUTO_TEST_CASE(experiment_build)
+{
 	MeshPtr m(new Mesh());
 
 	// first strip
@@ -152,7 +154,8 @@ BOOST_AUTO_TEST_CASE(experiment_build) {
 	BOOST_CHECK(t == exp->strips.end());
 }
 
-BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips_0) {
+BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips_0)
+{
 	// stripify on empty mesh should not fail
 	MeshPtr m(new Mesh());
 	TriangleStripifier ts(m);
@@ -160,7 +163,8 @@ BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips_0) {
 	BOOST_CHECK_EQUAL(all_strips.size(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips_1) {
+BOOST_AUTO_TEST_CASE(triangle_stripifier_find_all_strips_1)
+{
 	MeshPtr m(new Mesh());
 
 	// first strip

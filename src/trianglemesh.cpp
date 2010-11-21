@@ -73,13 +73,15 @@ POSSIBILITY OF SUCH DAMAGE.
 //~ Definitions
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Edge::Edge(int _ev0, int _ev1) : ev0(_ev0), ev1(_ev1) {
+Edge::Edge(int _ev0, int _ev1) : ev0(_ev0), ev1(_ev1)
+{
 	// ensure it is not degenerate
 	if (_ev0 == _ev1)
 		throw std::runtime_error("Degenerate edge.");
 };
 
-bool Edge::operator<(const Edge & otheredge) const {
+bool Edge::operator<(const Edge & otheredge) const
+{
 	if (ev0 < otheredge.ev0) return true;
 	if (ev0 > otheredge.ev0) return false;
 	// ev0 == otheredge.ev0, so use ev1 for comparing
@@ -87,15 +89,18 @@ bool Edge::operator<(const Edge & otheredge) const {
 	return false;
 };
 
-bool Edge::operator==(const Edge & otheredge) const {
+bool Edge::operator==(const Edge & otheredge) const
+{
 	return ((ev0 == otheredge.ev0) && (ev1 == otheredge.ev1));
 };
 
-MEdge::MEdge(const Edge & edge) : Edge(edge), faces() {
+MEdge::MEdge(const Edge & edge) : Edge(edge), faces()
+{
 	// nothing to do: faces are set in Mesh::add_face.
 };
 
-void MEdge::dump() const {
+void MEdge::dump() const
+{
 	std::cout << "  edge " << ev0 << "," << ev1 << std::endl;
 	BOOST_FOREACH(boost::weak_ptr<MFace> face, faces) {
 		if (MFacePtr f = face.lock()) {
@@ -106,7 +111,8 @@ void MEdge::dump() const {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Face::Face(int _v0, int _v1, int _v2) {
+Face::Face(int _v0, int _v1, int _v2)
+{
 	// ensure it is not degenerate
 	if ((_v0 == _v1) || (_v1 == _v2) || (_v0 == _v2))
 		throw std::runtime_error("Degenerate face.");
@@ -128,7 +134,8 @@ Face::Face(int _v0, int _v1, int _v2) {
 	}
 };
 
-bool Face::operator<(const Face & otherface) const {
+bool Face::operator<(const Face & otherface) const
+{
 	if (v0 < otherface.v0) return true;
 	if (v0 > otherface.v0) return false;
 	if (v1 < otherface.v1) return true;
@@ -137,11 +144,13 @@ bool Face::operator<(const Face & otherface) const {
 	return false;
 };
 
-bool Face::operator==(const Face & otherface) const {
+bool Face::operator==(const Face & otherface) const
+{
 	return ((v0 == otherface.v0) && (v1 == otherface.v1) && (v2 == otherface.v2));
 };
 
-int Face::get_next_vertex(int vi) const {
+int Face::get_next_vertex(int vi) const
+{
 	if (vi == v0) return v1;
 	else if (vi == v1) return v2;
 	else if (vi == v2) return v0;
@@ -150,12 +159,14 @@ int Face::get_next_vertex(int vi) const {
 }
 
 MFace::MFace(const Face & face)
-		: Face(face), faces0(), faces1(), faces2(),
-		strip_id(-1), test_strip_id(-1), experiment_id(-1) {
+	: Face(face), faces0(), faces1(), faces2(),
+	  strip_id(-1), test_strip_id(-1), experiment_id(-1)
+{
 	// nothing to do
 };
 
-MFace::Faces & MFace::get_adjacent_faces(int vi) {
+MFace::Faces & MFace::get_adjacent_faces(int vi)
+{
 	if (vi == v0) return faces0;
 	else if (vi == v1) return faces1;
 	else if (vi == v2) return faces2;
@@ -163,7 +174,8 @@ MFace::Faces & MFace::get_adjacent_faces(int vi) {
 	else throw std::runtime_error("Invalid vertex index.");
 };
 
-void MFace::dump() const {
+void MFace::dump() const
+{
 	std::cout << "  face " << v0 << "," << v1 << "," << v2 << std::endl;
 	BOOST_FOREACH(boost::weak_ptr<MFace> face0, faces0) {
 		if (MFacePtr f = face0.lock()) {
@@ -184,7 +196,8 @@ void MFace::dump() const {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-void Mesh::add_edge(MFacePtr face, int pv0, int pv1) {
+void Mesh::add_edge(MFacePtr face, int pv0, int pv1)
+{
 	// add edge to edge map
 
 	// create edge index and search for edge in mesh
@@ -232,7 +245,8 @@ void Mesh::add_edge(MFacePtr face, int pv0, int pv1) {
 
 Mesh::Mesh() : _faces(), _edges(), faces() {};
 
-MFacePtr Mesh::add_face(int v0, int v1, int v2) {
+MFacePtr Mesh::add_face(int v0, int v1, int v2)
+{
 	// create face index and search if face already exists in mesh
 	Face face_index(v0, v1, v2);
 	FaceMap::const_iterator face_iter = _faces.find(face_index);
@@ -253,12 +267,14 @@ MFacePtr Mesh::add_face(int v0, int v1, int v2) {
 	return face;
 }
 
-void Mesh::lock() {
+void Mesh::lock()
+{
 	_edges.clear();
 	_faces.clear();
 }
 
-void Mesh::dump() const {
+void Mesh::dump() const
+{
 	std::cout << faces.size() << " faces" << std::endl;
 	BOOST_FOREACH(MFacePtr face, faces) {
 		face->dump();

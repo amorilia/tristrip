@@ -43,7 +43,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 BOOST_AUTO_TEST_SUITE(trianglemesh_test_suite)
 
-BOOST_AUTO_TEST_CASE(declare_test) {
+BOOST_AUTO_TEST_CASE(declare_test)
+{
 	// check that declarations work as expected
 	BOOST_CHECK_NO_THROW(Edge edge(0, 1));
 	BOOST_CHECK_NO_THROW(Face face(0, 1, 2));
@@ -57,19 +58,22 @@ BOOST_AUTO_TEST_CASE(declare_test) {
 	BOOST_CHECK_THROW(Face face(7, 7, 7), std::runtime_error);
 }
 
-BOOST_AUTO_TEST_CASE(edge_index_test_0) {
+BOOST_AUTO_TEST_CASE(edge_index_test_0)
+{
 	Edge edge(10, 20);
 	BOOST_CHECK_EQUAL(edge.ev0, 10);
 	BOOST_CHECK_EQUAL(edge.ev1, 20);
 }
 
-BOOST_AUTO_TEST_CASE(edge_index_test_1) {
+BOOST_AUTO_TEST_CASE(edge_index_test_1)
+{
 	Edge edge(20, 10);
 	BOOST_CHECK_EQUAL(edge.ev0, 20);
 	BOOST_CHECK_EQUAL(edge.ev1, 10);
 }
 
-BOOST_AUTO_TEST_CASE(face_next_vertex_test) {
+BOOST_AUTO_TEST_CASE(face_next_vertex_test)
+{
 	Face f(9, 3, 18);
 	// throw on illegal index?
 	BOOST_CHECK_THROW(f.get_next_vertex(5), std::runtime_error);
@@ -79,28 +83,32 @@ BOOST_AUTO_TEST_CASE(face_next_vertex_test) {
 	BOOST_CHECK_EQUAL(f.get_next_vertex(18), 9);
 }
 
-BOOST_AUTO_TEST_CASE(face_vertex_order_test_0) {
+BOOST_AUTO_TEST_CASE(face_vertex_order_test_0)
+{
 	Face f(6, 2, 5);
 	BOOST_CHECK_EQUAL(f.v0, 2);
 	BOOST_CHECK_EQUAL(f.v1, 5);
 	BOOST_CHECK_EQUAL(f.v2, 6);
 }
 
-BOOST_AUTO_TEST_CASE(face_vertex_order_test_1) {
+BOOST_AUTO_TEST_CASE(face_vertex_order_test_1)
+{
 	Face f(2, 5, 6);
 	BOOST_CHECK_EQUAL(f.v0, 2);
 	BOOST_CHECK_EQUAL(f.v1, 5);
 	BOOST_CHECK_EQUAL(f.v2, 6);
 }
 
-BOOST_AUTO_TEST_CASE(face_vertex_order_test_2) {
+BOOST_AUTO_TEST_CASE(face_vertex_order_test_2)
+{
 	Face f(5, 6, 2);
 	BOOST_CHECK_EQUAL(f.v0, 2);
 	BOOST_CHECK_EQUAL(f.v1, 5);
 	BOOST_CHECK_EQUAL(f.v2, 6);
 }
 
-BOOST_AUTO_TEST_CASE(mesh_add_face_test) {
+BOOST_AUTO_TEST_CASE(mesh_add_face_test)
+{
 	Mesh m;
 
 	// add faces
@@ -121,7 +129,8 @@ BOOST_AUTO_TEST_CASE(mesh_add_face_test) {
 	BOOST_CHECK_EQUAL(m._edges.size(), 12);
 }
 
-BOOST_AUTO_TEST_CASE(face_faces_test_0) {
+BOOST_AUTO_TEST_CASE(face_faces_test_0)
+{
 	// construct mesh
 	Mesh m;
 	MFacePtr f0 = m.add_face(0, 1, 2);
@@ -160,7 +169,8 @@ BOOST_AUTO_TEST_CASE(face_faces_test_0) {
 	BOOST_CHECK_EQUAL(f2->faces2[0].lock(), f1);
 }
 
-BOOST_AUTO_TEST_CASE(face_faces_test_1) {
+BOOST_AUTO_TEST_CASE(face_faces_test_1)
+{
 	// construct mesh
 	Mesh m;
 	MFacePtr f0 = m.add_face(0, 1, 2);
@@ -184,7 +194,8 @@ BOOST_AUTO_TEST_CASE(face_faces_test_1) {
 	BOOST_CHECK_EQUAL(f3->faces2[0].lock(), f1);
 }
 
-BOOST_AUTO_TEST_CASE(fac_faces_test_2) {
+BOOST_AUTO_TEST_CASE(fac_faces_test_2)
+{
 	// single triangle mesh
 	Mesh m;
 	MFacePtr f = m.add_face(0, 1, 2);
@@ -193,7 +204,8 @@ BOOST_AUTO_TEST_CASE(fac_faces_test_2) {
 	BOOST_CHECK_EQUAL(f->faces2.size(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(face_get_adjacent_faces_test_0) {
+BOOST_AUTO_TEST_CASE(face_get_adjacent_faces_test_0)
+{
 	// construct slightly more complicated mesh
 	Mesh m;
 	MFacePtr f0 = m.add_face(0, 1, 2);
@@ -214,7 +226,8 @@ BOOST_AUTO_TEST_CASE(face_get_adjacent_faces_test_0) {
 	BOOST_CHECK_EQUAL(f0->get_adjacent_faces(0)[1].lock(), f4); // 1 9 2
 }
 
-BOOST_AUTO_TEST_CASE(face_get_adjacent_faces_test_1) {
+BOOST_AUTO_TEST_CASE(face_get_adjacent_faces_test_1)
+{
 	MeshPtr m(new Mesh());
 	MFacePtr f1 = m->add_face(5, 3, 2);
 	MFacePtr f2 = m->add_face(1, 0, 8);
@@ -224,7 +237,8 @@ BOOST_AUTO_TEST_CASE(face_get_adjacent_faces_test_1) {
 	BOOST_CHECK_EQUAL(f2->get_adjacent_faces(1)[0].lock(), f4);
 }
 
-BOOST_AUTO_TEST_CASE(mesh_edgemap_test) {
+BOOST_AUTO_TEST_CASE(mesh_edgemap_test)
+{
 	Edge edge_index1(0, 1);
 	Edge edge_index2(0, 1);
 	Edge edge_index3(1, 0);

@@ -82,7 +82,8 @@ typedef boost::shared_ptr<MFace> MFacePtr;
 
 //! A standalone non-degenerate directed edge, represented as a pair
 //! of indices.
-class Edge {
+class Edge
+{
 public:
 	int ev0, ev1;
 
@@ -94,7 +95,8 @@ public:
 
 //! A non-degenerate directed edge with links to other parts of a
 //! mesh.
-class MEdge : public Edge {
+class MEdge : public Edge
+{
 public:
 	typedef std::vector<boost::weak_ptr<MFace> > Faces;
 	Faces faces; //! Note: faces are set in Mesh::add_face.
@@ -109,7 +111,8 @@ public:
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //! A standalone non-degenerate oriented face.
-class Face {
+class Face
+{
 public:
 	//! Vertex indices, with v0 always being the lowest index.
 	int v0, v1, v2;
@@ -124,7 +127,8 @@ public:
 };
 
 //! A non-degenerate face with links to other parts of a mesh.
-class MFace : public Face {
+class MFace : public Face
+{
 public:
 	typedef std::vector<boost::weak_ptr<MFace> > Faces;
 	//! Adjacent faces along edge opposite vertex v0, v1, and v2.
@@ -154,7 +158,8 @@ public:
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //! A mesh built from faces.
-class Mesh {
+class Mesh
+{
 private:
 	//! Create new edge for mesh for given face, or return
 	//! existing edge. Lists of faces of the new/existing edge is

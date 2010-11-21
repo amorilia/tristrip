@@ -60,7 +60,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class TriangleStrip {
+class TriangleStrip
+{
 public:
 	//Heavily adapted from NvTriStrip.
 	//Original can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
@@ -138,7 +139,8 @@ typedef boost::shared_ptr<TriangleStrip> TriangleStripPtr;
 
 //! An experiment is a collection of adjacent strips, constructed from
 //! a single face and start vertex.
-class Experiment {
+class Experiment
+{
 public:
 	std::list<TriangleStripPtr> strips;
 	int vertex;
@@ -165,7 +167,8 @@ typedef boost::shared_ptr<Experiment> ExperimentPtr;
 //~ ExperimentSelector
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class ExperimentSelector {
+class ExperimentSelector
+{
 public:
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Constants / Variables / Etc.
@@ -198,7 +201,8 @@ public:
 
 //Heavily adapted from NvTriStrip.
 //Origional can be found at http://developer.nvidia.com/view.asp?IO=nvtristrip_library.
-class TriangleStripifier {
+class TriangleStripifier
+{
 public:
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~ Constants / Variables / Etc.

@@ -40,7 +40,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "tristrip.hpp"
 #include "trianglestripifier.hpp"
 
-std::list<std::deque<int> > stripify(const std::list<std::list<int> > & triangles) {
+std::list<std::deque<int> > stripify(const std::list<std::list<int> > & triangles)
+{
 	// build mesh
 	MeshPtr mesh(new Mesh);
 	BOOST_FOREACH(std::list<int> triangle, triangles) {
