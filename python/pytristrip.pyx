@@ -37,43 +37,19 @@
 #
 # ***** END LICENSE BLOCK *****
 
+from libcpp.list cimport list as list_
+from libcpp.deque cimport deque
+
 cdef extern from "tristrip.hpp":
-
-    cdef struct list_int "std::list<int>":
-         void (* push_back)(int elem)
-         void (* clear)()
-         void (* pop_front)()
-         int (* front)()
-         int (* empty)()
-
-    cdef struct deque_int "std::deque<int>":
-         void (* push_back)(int elem)
-         void (* clear)()
-         void (* pop_front)()
-         int (* front)()
-         int (* empty)()
-
-    cdef struct list_list_int "std::list<std::list<int > >":
-         void (* push_back)(list_int elem)
-         void (* pop_front)()
-         list_int (* front)()
-         int (* empty)()
-
-    cdef struct list_deque_int "std::list<std::deque<int > >":
-         void (* push_back)(deque_int elem)
-         void (* pop_front)()
-         deque_int (* front)()
-         int (* empty)()
-
-    list_deque_int c_stripify "stripify" (list_list_int triangles)
+    list_[deque[int]] c_stripify "stripify" (list_[list_[int]] triangles)
 
 def stripify(triangles):
     """Stripify list of triangles."""
 
-    cdef list_int c_triangle
-    cdef list_list_int c_triangles
-    cdef deque_int c_strip
-    cdef list_deque_int c_strips
+    cdef list_[int] c_triangle
+    cdef list_[list_[int]] c_triangles
+    cdef deque[int] c_strip
+    cdef list_[deque[int]] c_strips
     # convert triangles to list of list of ints
     for triangle in triangles:
         c_triangle.clear()
